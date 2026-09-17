@@ -21,7 +21,7 @@
 - OpenStreetMap (карта кампуса)
 - Без бэкенда в этой версии: запросы идут из браузера
 
-## Запуск
+## Запуск локально
 
 ```bash
 npm install
@@ -29,6 +29,14 @@ npm run dev
 ```
 
 Откройте локальный URL из терминала (обычно `http://localhost:5173`).
+
+## Демо на GitHub Pages
+
+После push в `main` сайт собирается и публикуется автоматически:
+
+**https://beknazarberikbosyn-dot.github.io/campuslens/**
+
+Важно: для GitHub Pages в `vite.config.ts` задан `base: '/campuslens/'` при сборке в Actions. Без этого JS/CSS не загружаются и экран остаётся белым.
 
 ## Тестовый сценарий для жюри
 

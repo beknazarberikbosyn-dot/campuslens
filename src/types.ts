@@ -93,3 +93,15 @@ export type ReviewRole = 'applicant' | 'student' | 'graduate'
 export type ReviewAspectId = 'campus' | 'dorm' | 'teaching' | 'life' | 'city'
 
 export type ReviewScores = Record<ReviewAspectId, number>
+
+export type UniversityReview = {
+  id: string
+  universityKey: string
+  universityName: string
+  author: string
+  role: ReviewRole
+  rating: number
+  scores: ReviewScores
+  text: string
+  createdAt: string
+}

@@ -95,7 +95,7 @@ export type ReviewAspectId = 'campus' | 'dorm' | 'teaching' | 'life' | 'city'
 
 export type ReviewScores = Record<ReviewAspectId, number>
 
-export type ReviewSourceId = 'campuslens'
+export type ReviewSourceId = 'campuslens' | 'user'
 
 export type MapProviderId = 'google' | 'yandex' | 'dgis' | 'osm' | 'apple'
 
@@ -130,6 +130,9 @@ export type UniversityReview = {
   text: string
   createdAt: string
   source?: ReviewSourceId
+  evidenceFile?: string
+  evidenceUrl?: string
+  evidenceSearchUrl?: string
 }
 
 export type ReviewSummary = {

@@ -7,6 +7,7 @@ import {
   loadAllReviews,
   rankedUniversities,
   reviewCountLabel,
+  reviewEvidence,
   reviewsForUniversity,
   summarizeReviews,
 } from '../lib/reviews'
@@ -69,19 +70,73 @@ export function AspectMeters({ summary }: { summary: ReviewSummary }) {
 
 export function ReviewCard({ review }: { review: UniversityReview }) {
   const role = ROLES.find((r) => r.id === review.role)?.label ?? review.role
+  const fromRepo = review.source !== 'user' && Boolean(review.evidenceUrl)
   return (
     <article className="review-card">
       <div className="review-head">
         <div>
           <b>{review.author}</b>
           <span className="meta">
-            {role} · {review.createdAt} · CampusLens
+            {role} · {review.createdAt} · {fromRepo ? 'корпус CampusLens' : 'оставлен на сайте'}
           </span>
         </div>
         <Stars value={review.rating} />
       </div>
       <p>{review.text}</p>
+      <p className="review-evidence-line">
+        <span>id {review.id}</span>
+        {fromRepo && review.evidenceSearchUrl ? (
+          <a href={review.evidenceSearchUrl} target="_blank" rel="noreferrer">
+            найти этот id на GitHub
+          </a>
+        ) : (
+          <span>хранится в этом браузере</span>
+        )}
+        {review.evidenceUrl ? (
+          <a href={review.evidenceUrl} target="_blank" rel="noreferrer">
+            открыть файл
+          </a>
+        ) : null}
+      </p>
     </article>
+  )
+}
+
+export function ReviewProvenance({
+  universityName,
+  reviews,
+}: {
+  universityName: string
+  reviews: UniversityReview[]
+}) {
+  const evidence = reviewEvidence(reviews)
+  return (
+    <section className="review-evidence">
+      <h3>Как проверить эти отзывы</h3>
+      <p>
+        {`На ${universityName} сейчас ${reviewCountLabel(evidence.total)}${
+          evidence.corpus ? `, из них ${evidence.corpus} лежат в открытом репозитории` : ''
+        }. Текст на сайте должен совпадать с файлом на GitHub — это и есть доказательство, что карточка не выдумана в момент открытия страницы.`}
+      </p>
+      <ul>
+        <li>
+          {evidence.file
+            ? `Корпус CampusLens можно открыть и сверить построчно: ${evidence.file}.`
+            : 'Корпус CampusLens можно открыть и сверить построчно.'}
+        </li>
+        <li>
+          Это не выгрузка из 2ГИС, Google Maps или Яндекс Карт. Чужие отзывы мы не копируем: живые
+          отзывы карт — по официальным ссылкам рядом.
+        </li>
+        <li>Отзыв, оставленный здесь, хранится в браузере и помечен отдельно.</li>
+      </ul>
+      {evidence.url ? (
+        <a className="map-link" href={evidence.url} target="_blank" rel="noreferrer">
+          <b>Открыть исходник на GitHub</b>
+          <span>{evidence.file}</span>
+        </a>
+      ) : null}
+    </section>
   )
 }
 
@@ -348,6 +403,7 @@ export function RatingsView({
               </p>
               <AspectMeters summary={summary} />
               {activeName ? <MapSources universityName={activeName} /> : null}
+              {activeName ? <ReviewProvenance universityName={activeName} reviews={reviewsForUniversity(activeName)} /> : null}
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '16px 0' }}>
                 <button className="primary" onClick={() => onOpenProfile(activeName)}>
                   Визуальный профиль
@@ -418,12 +474,13 @@ export function ProfileReviews({
           </span>
         </p>
         <AspectMeters summary={summary} />
+        <ReviewProvenance universityName={universityName} reviews={reviews} />
       </div>
       <div className="panel">
         <ReviewForm universityName={universityName} onSaved={onSaved} />
       </div>
       <div className="review-list" style={{ gridColumn: '1 / -1' }}>
-        {reviews.slice(0, 12).map((review) => (
+        {reviews.map((review) => (
           <ReviewCard key={review.id} review={review} />
         ))}
       </div>

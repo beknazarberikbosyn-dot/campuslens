@@ -1,4 +1,5 @@
 import type { ReviewRole, UniversityReview } from '../../types'
+import { evidenceFor } from './evidence'
 
 export function review(
   id: string,
@@ -27,5 +28,6 @@ export function review(
     text,
     createdAt,
     source: 'campuslens',
+    ...evidenceFor(universityName, id),
   }
 }

@@ -128,7 +128,7 @@ export function addReview(
     universityKey: draft.universityKey ?? universityName,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString().slice(0, 10),
-    source: draft.source ?? 'campuslens',
+    source: draft.source ?? 'user',
   }
   const next = [...readStored(), review]
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
@@ -199,4 +199,14 @@ export function reviewCountLabel(count: number): string {
   if (d === 1) return `${count} отзыв`
   if (d >= 2 && d <= 4) return `${count} отзыва`
   return `${count} отзывов`
+}
+
+export function reviewEvidence(reviews: UniversityReview[]) {
+  const corpus = reviews.filter((review) => review.source !== 'user')
+  return {
+    total: reviews.length,
+    corpus: corpus.length,
+    file: corpus[0]?.evidenceFile ?? null,
+    url: corpus[0]?.evidenceUrl ?? null,
+  }
 }

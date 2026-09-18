@@ -116,6 +116,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'Ездила на campus visit перед заявкой. Лаборатории и коридоры важнее буклета. Жильё и город бьют по бюджету сильнее, чем ожидала.',
     '2025-10-19',
   ),
+  review(
+    'seed-mit-3',
+    'Massachusetts Institute of Technology',
+    'Sofia',
+    'graduate',
+    5,
+    [5, 4, 5, 5, 4],
+    'После выпуска скажу так: интенсивность учёбы настоящая, кампус живой почти круглосуточно. Если сравнивать только «красоту двора», MIT не про это.',
+    '2026-04-27',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

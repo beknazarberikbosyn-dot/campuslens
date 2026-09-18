@@ -1,3 +1,4 @@
+import { ALIASES, SUGGESTIONS, normalize } from '../data/catalog'
 import { SEED_REVIEWS } from '../data/reviews'
 import type {
   RankedUniversity,
@@ -5,9 +6,38 @@ import type {
   ReviewScores,
   ReviewSummary,
   UniversityReview,
+  VisualProfile,
 } from '../types'
 
 const STORAGE_KEY = 'campuslens-reviews-v1'
+
+const EMPTY_SCORES: ReviewScores = {
+  campus: 0,
+  dorm: 0,
+  teaching: 0,
+  life: 0,
+  city: 0,
+}
+
+const NAME_HINTS: { needle: string; title: string }[] = [
+  { needle: 'nazarbayev', title: 'Nazarbayev University' },
+  { needle: 'назарбаев', title: 'Nazarbayev University' },
+  { needle: 'al-farabi', title: 'Al-Farabi Kazakh National University' },
+  { needle: 'аль-фараби', title: 'Al-Farabi Kazakh National University' },
+  { needle: 'аль фараби', title: 'Al-Farabi Kazakh National University' },
+  { needle: 'kazakh national university', title: 'Al-Farabi Kazakh National University' },
+  { needle: 'satbayev', title: 'Satbayev University' },
+  { needle: 'satpaev', title: 'Satbayev University' },
+  { needle: 'сатбаев', title: 'Satbayev University' },
+  { needle: 'сатпаев', title: 'Satbayev University' },
+  { needle: 'massachusetts', title: 'Massachusetts Institute of Technology' },
+  { needle: 'массачусет', title: 'Massachusetts Institute of Technology' },
+  { needle: 'oxford', title: 'University of Oxford' },
+  { needle: 'оксфорд', title: 'University of Oxford' },
+  { needle: 'stanford', title: 'Stanford University' },
+  { needle: 'стэнфорд', title: 'Stanford University' },
+  { needle: 'стенфорд', title: 'Stanford University' },
+]
 
 function isReview(value: unknown): value is UniversityReview {
   if (!value || typeof value !== 'object') return false
@@ -34,27 +64,6 @@ function readStored(): UniversityReview[] {
     return []
   }
 }
-import { ALIASES, SUGGESTIONS, normalize } from '../data/catalog'
-
-const NAME_HINTS: { needle: string; title: string }[] = [
-  { needle: 'nazarbayev', title: 'Nazarbayev University' },
-  { needle: 'назарбаев', title: 'Nazarbayev University' },
-  { needle: 'al-farabi', title: 'Al-Farabi Kazakh National University' },
-  { needle: 'аль-фараби', title: 'Al-Farabi Kazakh National University' },
-  { needle: 'аль фараби', title: 'Al-Farabi Kazakh National University' },
-  { needle: 'kazakh national university', title: 'Al-Farabi Kazakh National University' },
-  { needle: 'satbayev', title: 'Satbayev University' },
-  { needle: 'satpaev', title: 'Satbayev University' },
-  { needle: 'сатбаев', title: 'Satbayev University' },
-  { needle: 'сатпаев', title: 'Satbayev University' },
-  { needle: 'massachusetts', title: 'Massachusetts Institute of Technology' },
-  { needle: 'массачусет', title: 'Massachusetts Institute of Technology' },
-  { needle: 'oxford', title: 'University of Oxford' },
-  { needle: 'оксфорд', title: 'University of Oxford' },
-  { needle: 'stanford', title: 'Stanford University' },
-  { needle: 'стэнфорд', title: 'Stanford University' },
-  { needle: 'стенфорд', title: 'Stanford University' },
-]
 
 export function canonicalUniversityName(name: string): string {
   const n = normalize(name)
@@ -82,7 +91,6 @@ export function universityKeys(name: string): Set<string> {
   }
   return keys
 }
-
 
 export function loadAllReviews(): UniversityReview[] {
   const stored = readStored()
@@ -117,15 +125,6 @@ export function addReview(
   const next = [...readStored(), review]
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   return review
-}
-
-
-const EMPTY_SCORES: ReviewScores = {
-  campus: 0,
-  dorm: 0,
-  teaching: 0,
-  life: 0,
-  city: 0,
 }
 
 function avg(values: number[]): number {
@@ -163,4 +162,33 @@ export function rankedUniversities(all = loadAllReviews()): RankedUniversity[] {
       }
     })
     .sort((a, b) => b.summary.average - a.summary.average || b.summary.count - a.summary.count || a.name.localeCompare(b.name))
+}
+
+export function visualCoverageScore(profile: VisualProfile): number {
+  const photoPart = Math.min(1, profile.photos.length / 12)
+  const verifiedPart = Math.min(1, profile.photos.filter((p) => p.level === 'verified').length / 8)
+  const cats = new Set(profile.photos.map((p) => p.category)).size / 8
+  return Math.round(photoPart * 40 + verifiedPart * 40 + cats * 20)
+}
+
+export function combinedCampusScore(visual: number, summary: ReviewSummary): number {
+  if (!summary.count) return visual
+  const reviews100 = (summary.average / 5) * 100
+  const confidence = Math.min(1, summary.count / 6)
+  const reviewWeight = 0.48 + 0.18 * confidence
+  return Math.round(reviews100 * reviewWeight + visual * (1 - reviewWeight))
+}
+
+export function formatScore(value: number): string {
+  if (!value) return '—'
+  return value % 1 === 0 ? String(value) : value.toFixed(1)
+}
+
+export function reviewCountLabel(count: number): string {
+  const n = Math.abs(count) % 100
+  const d = n % 10
+  if (n > 10 && n < 20) return `${count} отзывов`
+  if (d === 1) return `${count} отзыв`
+  if (d >= 2 && d <= 4) return `${count} отзыва`
+  return `${count} отзывов`
 }

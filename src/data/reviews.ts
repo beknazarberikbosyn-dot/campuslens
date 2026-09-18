@@ -126,6 +126,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'После выпуска скажу так: интенсивность учёбы настоящая, кампус живой почти круглосуточно. Если сравнивать только «красоту двора», MIT не про это.',
     '2026-04-27',
   ),
+  review(
+    'seed-ox-1',
+    'University of Oxford',
+    'Hannah',
+    'student',
+    5,
+    [5, 4, 5, 4, 4],
+    'Колледжи и библиотеки — отдельный мир. Tutorial system тяжёлый, но честный. Город маленький, жильё дорогое. Заявка через UCAS была нервной.',
+    '2026-03-30',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

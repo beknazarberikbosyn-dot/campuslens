@@ -79,6 +79,7 @@ export type VisualProfile = {
   distanceKm: number | null
   warnings: string[]
   sourcesUsed: string[]
+  campusPlace?: CampusPlace | null
 }
 
 export type Progress = {
@@ -94,6 +95,30 @@ export type ReviewAspectId = 'campus' | 'dorm' | 'teaching' | 'life' | 'city'
 
 export type ReviewScores = Record<ReviewAspectId, number>
 
+export type ReviewSourceId = 'campuslens'
+
+export type MapProviderId = 'google' | 'yandex' | 'dgis' | 'osm' | 'apple'
+
+export type MapSourceLink = {
+  id: MapProviderId
+  label: string
+  url: string
+  hint: string
+}
+
+export type CampusPlace = {
+  name: string
+  query: string
+  address: string
+  lat: number | null
+  lon: number | null
+  website: string | null
+  wikipedia: string | null
+  osmUrl: string | null
+  provider: 'overpass' | 'photon' | 'hint' | 'search'
+  links: MapSourceLink[]
+}
+
 export type UniversityReview = {
   id: string
   universityKey: string
@@ -104,6 +129,7 @@ export type UniversityReview = {
   scores: ReviewScores
   text: string
   createdAt: string
+  source?: ReviewSourceId
 }
 
 export type ReviewSummary = {

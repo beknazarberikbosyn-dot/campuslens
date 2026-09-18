@@ -146,6 +146,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'На open day ходила по колледжам, а не только в Radcliffe Camera. Кампус красивый до боли, студенческая жизнь зависит от колледжа, не от «одного двора».',
     '2025-08-21',
   ),
+  review(
+    'seed-ox-3',
+    'University of Oxford',
+    'Priya',
+    'graduate',
+    4,
+    [5, 3, 5, 4, 4],
+    'Учёба сильнее кампусной сказки в буклетах. Общежитие колледжа было тесным. Если сравнивать с NU или MIT — здесь история и плотность библиотек.',
+    '2026-01-05',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

@@ -335,6 +335,20 @@ export default function App() {
     )
   }
 
+
+  if (view === 'ratings') {
+    return (
+      <RatingsView
+        focus={ratingsFocus}
+        onHome={home}
+        onOpenProfile={(name) => {
+          setQuery(name)
+          void submit(name)
+        }}
+      />
+    )
+  }
+
   if (view === 'compare' && profile) {
     return (
       <CompareView

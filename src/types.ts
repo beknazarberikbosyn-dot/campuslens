@@ -87,3 +87,9 @@ export type Progress = {
   kept: number
   message: string
 }
+
+export type ReviewRole = 'applicant' | 'student' | 'graduate'
+
+export type ReviewAspectId = 'campus' | 'dorm' | 'teaching' | 'life' | 'city'
+
+export type ReviewScores = Record<ReviewAspectId, number>

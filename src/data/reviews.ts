@@ -6,6 +6,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
   { id: 'teaching', label: 'Учёба' },
   { id: 'life', label: 'Студенческая жизнь' },
   { id: 'city', label: 'Город' },
+  review(
+    'seed-nu-1',
+    'Nazarbayev University',
+    'Айжан',
+    'student',
+    5,
+    [5, 5, 5, 4, 4],
+    'Поступала через NU: кампус новый, лаборатории реальные, общежитие рядом с учёбой. Зимой до центра далеко, но внутри кампуса жить удобно.',
+    '2026-03-12',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

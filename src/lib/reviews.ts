@@ -54,6 +54,10 @@ function isReview(value: unknown): value is UniversityReview {
   )
 }
 
+function withSource(review: UniversityReview): UniversityReview {
+  return { ...review, source: review.source ?? 'campuslens' }
+}
+
 function readStored(): UniversityReview[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -95,8 +99,8 @@ export function universityKeys(name: string): Set<string> {
 export function loadAllReviews(): UniversityReview[] {
   const stored = readStored()
   const byId = new Map<string, UniversityReview>()
-  for (const review of SEED_REVIEWS) byId.set(review.id, review)
-  for (const review of stored) byId.set(review.id, review)
+  for (const review of SEED_REVIEWS) byId.set(review.id, withSource(review))
+  for (const review of stored) byId.set(review.id, withSource(review))
   return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
@@ -112,7 +116,10 @@ export function reviewsForUniversity(name: string, all = loadAllReviews()): Univ
 }
 
 export function addReview(
-  draft: Omit<UniversityReview, 'id' | 'createdAt' | 'universityKey'> & { universityKey?: string },
+  draft: Omit<UniversityReview, 'id' | 'createdAt' | 'universityKey' | 'source'> & {
+    universityKey?: string
+    source?: UniversityReview['source']
+  },
 ): UniversityReview {
   const universityName = canonicalUniversityName(draft.universityName)
   const review: UniversityReview = {
@@ -121,6 +128,7 @@ export function addReview(
     universityKey: draft.universityKey ?? universityName,
     id: crypto.randomUUID(),
     createdAt: new Date().toISOString().slice(0, 10),
+    source: draft.source ?? 'campuslens',
   }
   const next = [...readStored(), review]
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next))

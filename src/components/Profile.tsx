@@ -1,4 +1,5 @@
 import { FILTERS } from '../data/catalog'
+import { MapSources } from './MapSources'
 import { ProfileReviews } from './Reviews'
 import type { Photo, VisualProfile } from '../types'
 
@@ -140,9 +141,20 @@ export function ProfileView({
         <div className="panel">
           <h3>Карта кампуса</h3>
           {u.lat != null && u.lon != null ? (
-            <iframe className="map" title="Карта кампуса" src={osm(u.lat, u.lon)} />
+            <>
+              <iframe className="map" title="Карта кампуса" src={osm(u.lat, u.lon)} />
+              <MapSources
+                universityName={u.displayName}
+                lat={u.lat}
+                lon={u.lon}
+                place={profile.campusPlace}
+              />
+            </>
           ) : (
-            <p>Координаты Wikipedia не найдены, карту не рисуем наугад.</p>
+            <>
+              <p>Координаты Wikipedia не найдены, карту не рисуем наугад.</p>
+              <MapSources universityName={u.displayName} place={profile.campusPlace} />
+            </>
           )}
         </div>
       </div>

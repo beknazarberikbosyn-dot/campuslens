@@ -1,4 +1,6 @@
 import { FILTERS } from '../data/catalog'
+import { ProfileReviews } from './Reviews'
+import { ProfileReviews } from './Reviews'
 import type { Photo, VisualProfile } from '../types'
 
 const LEVEL: Record<Photo['level'], string> = {
@@ -19,6 +21,8 @@ export function ProfileView({
   onOpen,
   onHome,
   onCompare,
+  onRatings,
+  onReviewSaved,
 }: {
   profile: VisualProfile
   filter: string
@@ -26,6 +30,8 @@ export function ProfileView({
   onOpen: (p: Photo) => void
   onHome: () => void
   onCompare: () => void
+  onRatings: () => void
+  onReviewSaved: () => void
 }) {
   const photos =
     filter === 'all' ? profile.photos : profile.photos.filter((p) => p.category === filter)
@@ -44,7 +50,10 @@ export function ProfileView({
           <span className="mark" />
           CampusLens
         </button>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="ghost" onClick={onRatings}>
+            Оценки вузов
+          </button>
           <button className="ghost" onClick={onCompare}>
             Сравнить вуз
           </button>

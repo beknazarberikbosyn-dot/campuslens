@@ -166,6 +166,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'Main Quad и пальмы реальные, кампус огромный. Велосипед обязателен. Жильё в Bay Area — отдельный стресс, учёба и стартап-среда — причина ехать.',
     '2026-05-16',
   ),
+  review(
+    'seed-st-2',
+    'Stanford University',
+    'Nina',
+    'applicant',
+    4,
+    [5, 4, 5, 4, 3],
+    'Подавала Common App и отдельно смотрела dorm tours. Кампус красивее, чем ожидала. Город как «городок кампуса», до Сан-Франциско не рукой подать.',
+    '2025-12-11',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

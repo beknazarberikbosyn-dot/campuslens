@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { CompareView } from './components/Compare'
 import { PhotoModal, ProfileView } from './components/Profile'
 import { RatingsView, Stars } from './components/Reviews'
+import { RatingsView, Stars } from './components/Reviews'
 import { SUGGESTIONS } from './data/catalog'
 import { buildVisualProfile, searchUniversity } from './lib/buildProfile'
 import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
@@ -194,6 +195,31 @@ export default function App() {
             ))}
           </div>
         </section>
+        <section className="suggest">
+          <h2>Оценки по отзывам с заявок</h2>
+          <p className="home-note">
+            Абитуриенты и студенты оставляют отзывы о кампусе, общежитии и городе. При сравнении вузов
+            эти оценки входят в итоговый балл вместе с проверенными фотографиями.
+          </p>
+          <div className="grid-3">
+            {topRated.map((item) => (
+              <button key={item.name} className="card-uni" onClick={() => openRatings(item.name)}>
+                {item.image ? <img src={item.image} alt="" /> : null}
+                <div>
+                  <small>{item.city || 'рейтинг'}</small>
+                  <b>{item.name}</b>
+                  <p>
+                    {formatScore(item.summary.average)} из 5 · {reviewCountLabel(item.summary.count)}
+                  </p>
+                  <Stars value={item.summary.average} />
+                </div>
+              </button>
+            ))}
+          </div>
+          <button className="ghost" style={{ marginTop: 18 }} onClick={() => openRatings()}>
+            Открыть все оценки
+          </button>
+
         <section className="suggest">
           <h2>Оценки по отзывам с заявок</h2>
           <p className="home-note">

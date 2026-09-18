@@ -96,6 +96,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'Выпустился с прикладным дипломом. Кампус не «instagram», но преподаватели по специальности сильные. Городская жизнь важнее самого двора.',
     '2025-09-14',
   ),
+  review(
+    'seed-mit-1',
+    'Massachusetts Institute of Technology',
+    'Maya',
+    'student',
+    5,
+    [5, 4, 5, 5, 4],
+    'East Campus и купол — не сток. Учёба жёсткая, общежития очень разные по характеру. Бостон дорогой, зато до города близко.',
+    '2026-02-08',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

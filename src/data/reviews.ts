@@ -36,6 +36,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'Училась на STEM. Библиотека и lab-корпуса — главная причина, почему я бы снова выбрала NU. Астана дорогая для студента без гранта.',
     '2025-11-20',
   ),
+  review(
+    'seed-kaznu-1',
+    'Al-Farabi Kazakh National University',
+    'Нурлан',
+    'student',
+    4,
+    [5, 3, 4, 4, 5],
+    'КазНУ выигрывает парком и городом: Алматы живой. Главный корпус красивый, общежития уже не новые. Поступал через грант, конкурс большой.',
+    '2026-02-18',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

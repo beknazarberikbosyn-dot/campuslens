@@ -1,5 +1,6 @@
 import { matchCity } from '../data/catalog'
 import { collectCampusImages } from './commons'
+import { resolveCampusPlace } from './maps'
 import { haversineKm, verifyAndSort } from './verify'
 import { loadUniversity, resolveCandidates } from './wiki'
 import type { PipelineStep, Progress, VisualProfile, WikiHit } from '../types'
@@ -7,6 +8,7 @@ import type { PipelineStep, Progress, VisualProfile, WikiHit } from '../types'
 const STEPS: Omit<PipelineStep, 'done' | 'detail'>[] = [
   { id: 'resolve', label: 'Ищем университет' },
   { id: 'collect', label: 'Собираем открытые источники' },
+  { id: 'maps', label: 'Открываем карточки на картах' },
   { id: 'dedupe', label: 'Удаляем дубликаты и мусор' },
   { id: 'verify', label: 'Проверяем принадлежность' },
   { id: 'sort', label: 'Раскладываем по категориям' },
@@ -45,6 +47,11 @@ export async function buildVisualProfile(
   const files = await collectCampusImages(university.searchNames, cityName)
   steps = mark(steps, 'collect', `${files.length} файлов из Commons`)
   push({ steps, found: files.length, message: `Найдено ${files.length} изображений` })
+
+  push({ steps, message: 'Ищем кампус в OpenStreetMap и собираем ссылки на карты' })
+  const campusPlace = await resolveCampusPlace(university.displayName, university.lat, university.lon)
+  steps = mark(steps, 'maps', campusPlace.address || campusPlace.provider)
+  push({ steps, found: files.length, message: `Карточки: 2ГИС, Google, Яндекс, OSM` })
 
   const { photos, rejected, duplicatesRemoved } = verifyAndSort(files, university.searchNames, cityName)
   steps = mark(steps, 'dedupe', `снято ${duplicatesRemoved} похожих`)
@@ -85,5 +92,6 @@ export async function buildVisualProfile(
     distanceKm,
     warnings,
     sourcesUsed: ['Wikipedia', 'Wikimedia Commons', 'OpenStreetMap'],
+    campusPlace,
   }
 }

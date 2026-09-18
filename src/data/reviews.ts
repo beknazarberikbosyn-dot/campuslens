@@ -156,6 +156,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'Учёба сильнее кампусной сказки в буклетах. Общежитие колледжа было тесным. Если сравнивать с NU или MIT — здесь история и плотность библиотек.',
     '2026-01-05',
   ),
+  review(
+    'seed-st-1',
+    'Stanford University',
+    'Luis',
+    'student',
+    5,
+    [5, 4, 5, 5, 4],
+    'Main Quad и пальмы реальные, кампус огромный. Велосипед обязателен. Жильё в Bay Area — отдельный стресс, учёба и стартап-среда — причина ехать.',
+    '2026-05-16',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

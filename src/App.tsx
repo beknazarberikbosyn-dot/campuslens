@@ -2,15 +2,13 @@ import { useMemo, useState } from 'react'
 import { CompareView } from './components/Compare'
 import { PhotoModal, ProfileView } from './components/Profile'
 import { RatingsView, Stars } from './components/Reviews'
-import { RatingsView, Stars } from './components/Reviews'
 import { SUGGESTIONS } from './data/catalog'
 import { buildVisualProfile, searchUniversity } from './lib/buildProfile'
-import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
 import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
 import { needsDisambiguation } from './lib/wiki'
 import type { Photo, Progress, VisualProfile, WikiHit } from './types'
 
-type View = 'home' | 'disambiguate' | 'pipeline' | 'profile' | 'compare' | 'empty' | 'ratings' | 'ratings'
+type View = 'home' | 'disambiguate' | 'pipeline' | 'profile' | 'compare' | 'empty' | 'ratings'
 
 function Logo() {
   return <span className="mark" />
@@ -27,8 +25,6 @@ export default function App() {
   const [opened, setOpened] = useState<Photo | null>(null)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
-  const [, setReviewVersion] = useState(0)
-  const [ratingsFocus, setRatingsFocus] = useState<string | null>(null)
   const [, setReviewVersion] = useState(0)
   const [ratingsFocus, setRatingsFocus] = useState<string | null>(null)
 
@@ -105,7 +101,6 @@ export default function App() {
 
   const seconds = useMemo(() => (elapsed / 1000).toFixed(1), [elapsed])
   const topRated = rankedUniversities().slice(0, 3)
-  const topRated = rankedUniversities().slice(0, 3)
 
   if (view === 'home') {
     return (
@@ -119,12 +114,7 @@ export default function App() {
             <button className="ghost" onClick={() => openRatings()}>
               Оценки вузов
             </button>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button className="ghost" onClick={() => openRatings()}>
-              Оценки вузов
-            </button>
             <span className="chip">LOCUS Case 01 · Visual Campus</span>
-          </div>
           </div>
         </div>
         <section className="hero">
@@ -195,31 +185,6 @@ export default function App() {
             ))}
           </div>
         </section>
-        <section className="suggest">
-          <h2>Оценки по отзывам с заявок</h2>
-          <p className="home-note">
-            Абитуриенты и студенты оставляют отзывы о кампусе, общежитии и городе. При сравнении вузов
-            эти оценки входят в итоговый балл вместе с проверенными фотографиями.
-          </p>
-          <div className="grid-3">
-            {topRated.map((item) => (
-              <button key={item.name} className="card-uni" onClick={() => openRatings(item.name)}>
-                {item.image ? <img src={item.image} alt="" /> : null}
-                <div>
-                  <small>{item.city || 'рейтинг'}</small>
-                  <b>{item.name}</b>
-                  <p>
-                    {formatScore(item.summary.average)} из 5 · {reviewCountLabel(item.summary.count)}
-                  </p>
-                  <Stars value={item.summary.average} />
-                </div>
-              </button>
-            ))}
-          </div>
-          <button className="ghost" style={{ marginTop: 18 }} onClick={() => openRatings()}>
-            Открыть все оценки
-          </button>
-
         <section className="suggest">
           <h2>Оценки по отзывам с заявок</h2>
           <p className="home-note">
@@ -321,20 +286,6 @@ export default function App() {
       </div>
     )
   }
-
-  if (view === 'ratings') {
-    return (
-      <RatingsView
-        focus={ratingsFocus}
-        onHome={home}
-        onOpenProfile={(name) => {
-          setQuery(name)
-          void submit(name)
-        }}
-      />
-    )
-  }
-
 
   if (view === 'ratings') {
     return (

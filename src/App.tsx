@@ -57,6 +57,7 @@ export default function App() {
       steps: [
         { id: 'resolve', label: 'Ищем университет', done: false, detail: '' },
         { id: 'collect', label: 'Собираем открытые источники', done: false, detail: '' },
+        { id: 'maps', label: 'Открываем карточки на картах', done: false, detail: '' },
         { id: 'dedupe', label: 'Удаляем дубликаты и мусор', done: false, detail: '' },
         { id: 'verify', label: 'Проверяем принадлежность', done: false, detail: '' },
         { id: 'sort', label: 'Раскладываем по категориям', done: false, detail: '' },
@@ -188,8 +189,9 @@ export default function App() {
         <section className="suggest">
           <h2>Оценки по отзывам с заявок</h2>
           <p className="home-note">
-            Абитуриенты и студенты оставляют отзывы о кампусе, общежитии и городе. При сравнении вузов
-            эти оценки входят в итоговый балл вместе с проверенными фотографиями.
+            Абитуриенты и студенты оставляют отзывы о кампусе, общежитии и городе. На демо-вузах —
+            по 16 отзывов CampusLens. Ссылки на 2ГИС, Google и Яндекс ведут на официальные карточки,
+            без копирования чужих текстов.
           </p>
           <div className="grid-3">
             {topRated.map((item) => (

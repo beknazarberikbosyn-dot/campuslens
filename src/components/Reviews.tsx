@@ -363,3 +363,46 @@ export function RatingsView({
   )
 }
 
+export function ProfileReviews({
+  universityName,
+  onSaved,
+  onRatings,
+}: {
+  universityName: string
+  onSaved: () => void
+  onRatings: () => void
+}) {
+  const reviews = reviewsForUniversity(universityName)
+  const summary = summarizeReviews(reviews)
+  return (
+    <section className="profile-reviews">
+      <div className="panel">
+        <div className="review-head">
+          <div>
+            <h3>Отзывы абитуриентов и студентов</h3>
+            <p className="meta">Оценки учитываются, когда вы сравниваете этот вуз с другим.</p>
+          </div>
+          <button className="ghost" onClick={onRatings}>
+            Весь рейтинг
+          </button>
+        </div>
+        <p className="score-line">
+          <b>{formatScore(summary.average)}</b>
+          <span>
+            {' '}
+            / 5 · {reviewCountLabel(summary.count)}
+          </span>
+        </p>
+        <AspectMeters summary={summary} />
+      </div>
+      <div className="panel">
+        <ReviewForm universityName={universityName} onSaved={onSaved} />
+      </div>
+      <div className="review-list" style={{ gridColumn: '1 / -1' }}>
+        {reviews.slice(0, 4).map((review) => (
+          <ReviewCard key={review.id} review={review} />
+        ))}
+      </div>
+    </section>
+  )
+}

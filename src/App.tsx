@@ -5,6 +5,7 @@ import { RatingsView, Stars } from './components/Reviews'
 import { SUGGESTIONS } from './data/catalog'
 import { buildVisualProfile, searchUniversity } from './lib/buildProfile'
 import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
+import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
 import { needsDisambiguation } from './lib/wiki'
 import type { Photo, Progress, VisualProfile, WikiHit } from './types'
 
@@ -103,6 +104,7 @@ export default function App() {
 
   const seconds = useMemo(() => (elapsed / 1000).toFixed(1), [elapsed])
   const topRated = rankedUniversities().slice(0, 3)
+  const topRated = rankedUniversities().slice(0, 3)
 
   if (view === 'home') {
     return (
@@ -116,7 +118,12 @@ export default function App() {
             <button className="ghost" onClick={() => openRatings()}>
               Оценки вузов
             </button>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="ghost" onClick={() => openRatings()}>
+              Оценки вузов
+            </button>
             <span className="chip">LOCUS Case 01 · Visual Campus</span>
+          </div>
           </div>
         </div>
         <section className="hero">

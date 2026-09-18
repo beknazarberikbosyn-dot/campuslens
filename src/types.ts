@@ -105,3 +105,17 @@ export type UniversityReview = {
   text: string
   createdAt: string
 }
+
+export type ReviewSummary = {
+  count: number
+  average: number
+  aspects: ReviewScores
+}
+
+export type RankedUniversity = {
+  name: string
+  city: string
+  image: string | null
+  blurb: string
+  summary: ReviewSummary
+}

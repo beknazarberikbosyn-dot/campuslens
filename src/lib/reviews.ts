@@ -1,3 +1,4 @@
+import { SEED_REVIEWS } from '../data/reviews'
 import type { UniversityReview } from '../types'
 
 const STORAGE_KEY = 'campuslens-reviews-v1'
@@ -74,4 +75,40 @@ export function universityKeys(name: string): Set<string> {
     titles.forEach((t) => keys.add(normalize(t)))
   }
   return keys
+}
+
+
+export function loadAllReviews(): UniversityReview[] {
+  const stored = readStored()
+  const byId = new Map<string, UniversityReview>()
+  for (const review of SEED_REVIEWS) byId.set(review.id, review)
+  for (const review of stored) byId.set(review.id, review)
+  return [...byId.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export function reviewsForUniversity(name: string, all = loadAllReviews()): UniversityReview[] {
+  const canonical = canonicalUniversityName(name)
+  const keys = new Set([...universityKeys(name), ...universityKeys(canonical)])
+  return all.filter(
+    (review) =>
+      keys.has(normalize(review.universityKey)) ||
+      keys.has(normalize(review.universityName)) ||
+      canonicalUniversityName(review.universityName) === canonical,
+  )
+}
+
+export function addReview(
+  draft: Omit<UniversityReview, 'id' | 'createdAt' | 'universityKey'> & { universityKey?: string },
+): UniversityReview {
+  const universityName = canonicalUniversityName(draft.universityName)
+  const review: UniversityReview = {
+    ...draft,
+    universityName,
+    universityKey: draft.universityKey ?? universityName,
+    id: crypto.randomUUID(),
+    createdAt: new Date().toISOString().slice(0, 10),
+  }
+  const next = [...readStored(), review]
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+  return review
 }

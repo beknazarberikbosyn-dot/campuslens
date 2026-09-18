@@ -1,6 +1,5 @@
 import { FILTERS } from '../data/catalog'
 import { ProfileReviews } from './Reviews'
-import { ProfileReviews } from './Reviews'
 import type { Photo, VisualProfile } from '../types'
 
 const LEVEL: Record<Photo['level'], string> = {
@@ -147,6 +146,12 @@ export function ProfileView({
           )}
         </div>
       </div>
+
+      <ProfileReviews
+        universityName={u.displayName}
+        onSaved={onReviewSaved}
+        onRatings={onRatings}
+      />
 
       <div className="filters">
         {FILTERS.map((f) => (

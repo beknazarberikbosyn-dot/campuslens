@@ -136,6 +136,16 @@ export const ASPECTS: { id: ReviewAspectId; label: string }[] = [
     'Колледжи и библиотеки — отдельный мир. Tutorial system тяжёлый, но честный. Город маленький, жильё дорогое. Заявка через UCAS была нервной.',
     '2026-03-30',
   ),
+  review(
+    'seed-ox-2',
+    'University of Oxford',
+    'James',
+    'applicant',
+    4,
+    [5, 4, 5, 3, 4],
+    'На open day ходила по колледжам, а не только в Radcliffe Camera. Кампус красивый до боли, студенческая жизнь зависит от колледжа, не от «одного двора».',
+    '2025-08-21',
+  ),
 ]
 
 export const ROLES: { id: ReviewRole; label: string }[] = [

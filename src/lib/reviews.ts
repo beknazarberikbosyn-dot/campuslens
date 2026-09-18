@@ -1,5 +1,11 @@
 import { SEED_REVIEWS } from '../data/reviews'
-import type { UniversityReview } from '../types'
+import type {
+  RankedUniversity,
+  ReviewAspectId,
+  ReviewScores,
+  ReviewSummary,
+  UniversityReview,
+} from '../types'
 
 const STORAGE_KEY = 'campuslens-reviews-v1'
 
@@ -111,4 +117,50 @@ export function addReview(
   const next = [...readStored(), review]
   localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   return review
+}
+
+
+const EMPTY_SCORES: ReviewScores = {
+  campus: 0,
+  dorm: 0,
+  teaching: 0,
+  life: 0,
+  city: 0,
+}
+
+function avg(values: number[]): number {
+  if (!values.length) return 0
+  return values.reduce((sum, n) => sum + n, 0) / values.length
+}
+
+export function summarizeReviews(reviews: UniversityReview[]): ReviewSummary {
+  if (!reviews.length) return { count: 0, average: 0, aspects: { ...EMPTY_SCORES } }
+  const aspectIds = Object.keys(EMPTY_SCORES) as ReviewAspectId[]
+  const aspects = { ...EMPTY_SCORES }
+  for (const id of aspectIds) {
+    aspects[id] = Math.round(avg(reviews.map((r) => r.scores[id]).filter((n) => n > 0)) * 10) / 10
+  }
+  return {
+    count: reviews.length,
+    average: Math.round(avg(reviews.map((r) => r.rating)) * 10) / 10,
+    aspects,
+  }
+}
+
+export function rankedUniversities(all = loadAllReviews()): RankedUniversity[] {
+  const names = new Set<string>()
+  SUGGESTIONS.forEach((s) => names.add(s.title))
+  all.forEach((r) => names.add(canonicalUniversityName(r.universityName)))
+  return [...names]
+    .map((name) => {
+      const suggestion = SUGGESTIONS.find((s) => s.title === name)
+      return {
+        name,
+        city: suggestion?.city ?? '',
+        image: suggestion?.image ?? null,
+        blurb: suggestion?.blurb ?? 'Отзывы абитуриентов и студентов',
+        summary: summarizeReviews(reviewsForUniversity(name, all)),
+      }
+    })
+    .sort((a, b) => b.summary.average - a.summary.average || b.summary.count - a.summary.count || a.name.localeCompare(b.name))
 }

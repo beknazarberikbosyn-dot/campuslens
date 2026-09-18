@@ -11,6 +11,7 @@ import {
   summarizeReviews,
 } from '../lib/reviews'
 import type { ReviewRole, ReviewScores, ReviewSummary, UniversityReview } from '../types'
+import { MapSources } from './MapSources'
 
 const EMPTY_SCORES: ReviewScores = {
   campus: 0,
@@ -74,7 +75,7 @@ export function ReviewCard({ review }: { review: UniversityReview }) {
         <div>
           <b>{review.author}</b>
           <span className="meta">
-            {role} · {review.createdAt}
+            {role} · {review.createdAt} · CampusLens
           </span>
         </div>
         <Stars value={review.rating} />
@@ -230,6 +231,7 @@ export function RatingsView({
   const [selected, setSelected] = useState(focus ?? '')
   const [picked, setPicked] = useState<string[]>(focus ? [focus] : [])
 
+  const [roleFilter, setRoleFilter] = useState<ReviewRole | 'all'>('all')
   const ranked = rankedUniversities()
   const filtered = ranked.filter((item) => {
     const q = query.trim().toLowerCase()
@@ -238,8 +240,10 @@ export function RatingsView({
   })
   const activeName = selected || filtered[0]?.name || canonicalUniversityName(query)
   const active = ranked.find((item) => item.name === activeName)
-  const reviews = activeName ? reviewsForUniversity(activeName) : []
-  const summary = summarizeReviews(reviews)
+  const reviews = (activeName ? reviewsForUniversity(activeName) : []).filter(
+    (review) => roleFilter === 'all' || review.role === roleFilter,
+  )
+  const summary = summarizeReviews(activeName ? reviewsForUniversity(activeName) : [])
 
   const togglePick = (name: string) => {
     setPicked((prev) => {
@@ -273,7 +277,8 @@ export function RatingsView({
           <h1>Оценки университетов по отзывам</h1>
           <p className="lede" style={{ color: 'var(--ink-soft)' }}>
             Люди, которые подавали документы или уже учатся, оставляют отзывы о кампусе, общежитии,
-            учёбе и городе. Эти оценки входят в сравнение вузов — не только фотографии.
+            учёбе и городе. По каждому демо-вузу собрано 16 отзывов CampusLens. Карточки 2ГИС, Google
+            и Яндекса открываются официально — чужие тексты мы не переносим.
           </p>
         </div>
         <form
@@ -342,10 +347,26 @@ export function RatingsView({
                 </span>
               </p>
               <AspectMeters summary={summary} />
+              {activeName ? <MapSources universityName={activeName} /> : null}
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '16px 0' }}>
                 <button className="primary" onClick={() => onOpenProfile(activeName)}>
                   Визуальный профиль
                 </button>
+              </div>
+              <div className="role-row" style={{ margin: '8px 0 4px' }}>
+                <button type="button" className={roleFilter === 'all' ? 'on' : ''} onClick={() => setRoleFilter('all')}>
+                  все {summary.count}
+                </button>
+                {ROLES.map((item) => (
+                  <button
+                    type="button"
+                    key={item.id}
+                    className={roleFilter === item.id ? 'on' : ''}
+                    onClick={() => setRoleFilter(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
               <ReviewForm universityName={activeName} onSaved={() => setVersion((n) => n + 1)} />
               <div className="review-list">
@@ -380,7 +401,10 @@ export function ProfileReviews({
         <div className="review-head">
           <div>
             <h3>Отзывы абитуриентов и студентов</h3>
-            <p className="meta">Оценки учитываются, когда вы сравниваете этот вуз с другим.</p>
+            <p className="meta">
+              Оценки учитываются при сравнении вузов. На картах открываются официальные карточки,
+              без копирования чужих отзывов.
+            </p>
           </div>
           <button className="ghost" onClick={onRatings}>
             Весь рейтинг
@@ -399,7 +423,7 @@ export function ProfileReviews({
         <ReviewForm universityName={universityName} onSaved={onSaved} />
       </div>
       <div className="review-list" style={{ gridColumn: '1 / -1' }}>
-        {reviews.slice(0, 4).map((review) => (
+        {reviews.slice(0, 12).map((review) => (
           <ReviewCard key={review.id} review={review} />
         ))}
       </div>

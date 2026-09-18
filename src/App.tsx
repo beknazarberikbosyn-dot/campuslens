@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
+import { CompareView } from './components/Compare'
+import { PhotoModal, ProfileView } from './components/Profile'
+import { RatingsView, Stars } from './components/Reviews'
 import { SUGGESTIONS } from './data/catalog'
 import { buildVisualProfile, searchUniversity } from './lib/buildProfile'
+import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
 import { needsDisambiguation } from './lib/wiki'
-import { PhotoModal, ProfileView } from './components/Profile'
 import type { Photo, Progress, VisualProfile, WikiHit } from './types'
 
-type View = 'home' | 'disambiguate' | 'pipeline' | 'profile' | 'compare' | 'empty'
+type View = 'home' | 'disambiguate' | 'pipeline' | 'profile' | 'compare' | 'empty' | 'ratings' | 'ratings'
 
 function Logo() {
   return <span className="mark" />
@@ -22,6 +25,10 @@ export default function App() {
   const [opened, setOpened] = useState<Photo | null>(null)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
+  const [, setReviewVersion] = useState(0)
+  const [ratingsFocus, setRatingsFocus] = useState<string | null>(null)
+  const [, setReviewVersion] = useState(0)
+  const [ratingsFocus, setRatingsFocus] = useState<string | null>(null)
 
   const run = async (hit: WikiHit, q: string) => {
     setView('pipeline')
@@ -86,9 +93,16 @@ export default function App() {
     setOther(null)
     setOpened(null)
     setProgress(null)
+    setRatingsFocus(null)
+  }
+
+  const openRatings = (name?: string) => {
+    setRatingsFocus(name ?? profile?.university.displayName ?? null)
+    setView('ratings')
   }
 
   const seconds = useMemo(() => (elapsed / 1000).toFixed(1), [elapsed])
+  const topRated = rankedUniversities().slice(0, 3)
 
   if (view === 'home') {
     return (
@@ -98,7 +112,12 @@ export default function App() {
             <Logo />
             CampusLens
           </button>
-          <span className="chip">LOCUS Case 01 · Visual Campus</span>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="ghost" onClick={() => openRatings()}>
+              Оценки вузов
+            </button>
+            <span className="chip">LOCUS Case 01 · Visual Campus</span>
+          </div>
         </div>
         <section className="hero">
           <div>
@@ -136,6 +155,10 @@ export default function App() {
                 <b>Wiki</b>
                 только открытые источники
               </div>
+              <div>
+                <b>{topRated[0] ? formatScore(topRated[0].summary.average) : '—'}</b>
+                лучший средний отзыв
+              </div>
             </div>
           </div>
           <div className="stack">
@@ -163,6 +186,31 @@ export default function App() {
               </button>
             ))}
           </div>
+        </section>
+        <section className="suggest">
+          <h2>Оценки по отзывам с заявок</h2>
+          <p className="home-note">
+            Абитуриенты и студенты оставляют отзывы о кампусе, общежитии и городе. При сравнении вузов
+            эти оценки входят в итоговый балл вместе с проверенными фотографиями.
+          </p>
+          <div className="grid-3">
+            {topRated.map((item) => (
+              <button key={item.name} className="card-uni" onClick={() => openRatings(item.name)}>
+                {item.image ? <img src={item.image} alt="" /> : null}
+                <div>
+                  <small>{item.city || 'рейтинг'}</small>
+                  <b>{item.name}</b>
+                  <p>
+                    {formatScore(item.summary.average)} из 5 · {reviewCountLabel(item.summary.count)}
+                  </p>
+                  <Stars value={item.summary.average} />
+                </div>
+              </button>
+            ))}
+          </div>
+          <button className="ghost" style={{ marginTop: 18 }} onClick={() => openRatings()}>
+            Открыть все оценки
+          </button>
         </section>
       </div>
     )
@@ -241,60 +289,33 @@ export default function App() {
     )
   }
 
+  if (view === 'ratings') {
+    return (
+      <RatingsView
+        focus={ratingsFocus}
+        onHome={home}
+        onOpenProfile={(name) => {
+          setQuery(name)
+          void submit(name)
+        }}
+      />
+    )
+  }
+
   if (view === 'compare' && profile) {
     return (
-      <div className="paper-page">
-        <div className="topbar">
-          <button className="brand" onClick={home}>
-            <Logo />
-            CampusLens
-          </button>
-          <button className="ghost" onClick={() => setView('profile')}>
-            Назад к профилю
-          </button>
-        </div>
-        <div style={{ padding: '12px 28px 0' }}>
-          <h1 style={{ fontSize: 42, color: 'inherit' }}>Сравнение</h1>
-          <form
-            className="search"
-            style={{ background: '#fff', borderColor: 'var(--line)' }}
-            onSubmit={async (e) => {
-              e.preventDefault()
-              const input = (e.currentTarget.elements.namedItem('other') as HTMLInputElement).value
-              const found = await searchUniversity(input)
-              if (!found[0]) return
-              const built = await buildVisualProfile(found[0], input, () => undefined)
-              setOther(built)
-            }}
-          >
-            <input name="other" placeholder="Второй университет" style={{ color: 'var(--ink)' }} />
-            <button type="submit">Сравнить</button>
-          </form>
-        </div>
-        <div className="compare">
-          {[profile, other].map((p, i) =>
-            p ? (
-              <article className="panel" key={p.university.displayName}>
-                <h3>{p.university.displayName}</h3>
-                <p>
-                  {p.city?.name ?? '—'} · {p.photos.length} кадров · {p.photos.filter((x) => x.level === 'verified').length}{' '}
-                  подтверждённых
-                </p>
-                <p>{p.description.slice(0, 240)}…</p>
-                <div className="grid-3" style={{ marginTop: 12 }}>
-                  {p.photos.slice(0, 3).map((ph) => (
-                    <img key={ph.id} src={ph.thumb} alt="" />
-                  ))}
-                </div>
-              </article>
-            ) : (
-              <article className="panel" key={i}>
-                <p>Введите второй вуз, чтобы сравнить кампусы честно, по одним правилам.</p>
-              </article>
-            ),
-          )}
-        </div>
-      </div>
+      <CompareView
+        profile={profile}
+        other={other}
+        onHome={home}
+        onBack={() => setView('profile')}
+        onCompare={async (name) => {
+          const found = await searchUniversity(name)
+          if (!found[0]) return
+          const built = await buildVisualProfile(found[0], name, () => undefined)
+          setOther(built)
+        }}
+      />
     )
   }
 
@@ -308,6 +329,8 @@ export default function App() {
           onOpen={setOpened}
           onHome={home}
           onCompare={() => setView('compare')}
+          onRatings={() => openRatings(profile.university.displayName)}
+          onReviewSaved={() => setReviewVersion((n) => n + 1)}
         />
         {opened ? <PhotoModal photo={opened} onClose={() => setOpened(null)} /> : null}
       </>

@@ -178,3 +178,188 @@ export function ReviewForm({
     </form>
   )
 }
+
+function ReviewCompare({ left, right }: { left: string; right: string }) {
+  const all = loadAllReviews()
+  const a = summarizeReviews(reviewsForUniversity(left, all))
+  const b = summarizeReviews(reviewsForUniversity(right, all))
+  const winner = a.average === b.average ? null : a.average > b.average ? left : right
+  return (
+    <div className="review-compare">
+      <div className="kicker">Сравнение по отзывам</div>
+      <h2>
+        {left} и {right}
+      </h2>
+      <p className="lede" style={{ color: 'var(--ink-soft)', maxWidth: 'none' }}>
+        {winner
+          ? `По отзывам абитуриентов и студентов впереди ${winner}: ${formatScore(winner === left ? a.average : b.average)} против ${formatScore(winner === left ? b.average : a.average)}.`
+          : a.count && b.count
+            ? 'Средние оценки совпадают — смотрите разбивку по кампусу, общежитию и городу.'
+            : 'Для полного сравнения не хватает отзывов по одному из вузов.'}
+      </p>
+      <div className="compare">
+        {[
+          { name: left, summary: a },
+          { name: right, summary: b },
+        ].map((side) => (
+          <article className={`panel ${winner === side.name ? 'winner' : ''}`} key={side.name}>
+            <h3>{side.name}</h3>
+            <p className="score-line">
+              <b>{formatScore(side.summary.average)}</b>
+              <span> / 5 · {reviewCountLabel(side.summary.count)}</span>
+            </p>
+            <AspectMeters summary={side.summary} />
+          </article>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function RatingsView({
+  focus,
+  onHome,
+  onOpenProfile,
+}: {
+  focus: string | null
+  onHome: () => void
+  onOpenProfile: (name: string) => void
+}) {
+  const [, setVersion] = useState(0)
+  const [query, setQuery] = useState('')
+  const [selected, setSelected] = useState(focus ?? '')
+  const [picked, setPicked] = useState<string[]>(focus ? [focus] : [])
+
+  const ranked = rankedUniversities()
+  const filtered = ranked.filter((item) => {
+    const q = query.trim().toLowerCase()
+    if (!q) return true
+    return item.name.toLowerCase().includes(q) || item.city.toLowerCase().includes(q)
+  })
+  const activeName = selected || filtered[0]?.name || canonicalUniversityName(query)
+  const active = ranked.find((item) => item.name === activeName)
+  const reviews = activeName ? reviewsForUniversity(activeName) : []
+  const summary = summarizeReviews(reviews)
+
+  const togglePick = (name: string) => {
+    setPicked((prev) => {
+      if (prev.includes(name)) return prev.filter((item) => item !== name)
+      if (prev.length < 2) return [...prev, name]
+      return [prev[1], name]
+    })
+    setSelected(name)
+  }
+
+  return (
+    <div className="paper-page">
+      <div className="topbar">
+        <button className="brand" onClick={onHome}>
+          <span className="mark" />
+          CampusLens
+        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <span className="chip">отзывы абитуриентов</span>
+          <button className="ghost" onClick={onHome}>
+            На главную
+          </button>
+        </div>
+      </div>
+
+      <section className="ratings-hero">
+        <div>
+          <div className="kicker" style={{ color: 'var(--rust)' }}>
+            Не буклет, а заявки и жизнь после них
+          </div>
+          <h1>Оценки университетов по отзывам</h1>
+          <p className="lede" style={{ color: 'var(--ink-soft)' }}>
+            Люди, которые подавали документы или уже учатся, оставляют отзывы о кампусе, общежитии,
+            учёбе и городе. Эти оценки входят в сравнение вузов — не только фотографии.
+          </p>
+        </div>
+        <form
+          className="search"
+          style={{ background: '#fff', borderColor: 'var(--line)' }}
+          onSubmit={(e) => {
+            e.preventDefault()
+            const name = canonicalUniversityName(query)
+            if (!name) return
+            setSelected(name)
+            setPicked((prev) => (prev.includes(name) || prev.length >= 2 ? prev : [...prev, name]))
+          }}
+        >
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Найти вуз или оставить отзыв"
+            style={{ color: 'var(--ink)' }}
+          />
+          <button type="submit">Открыть</button>
+        </form>
+      </section>
+
+      {picked.length === 2 ? <ReviewCompare left={picked[0]} right={picked[1]} /> : null}
+
+      <div className="ratings-layout">
+        <div>
+          <div className="rank-hint">Отметьте два вуза, чтобы сравнить отзывы. Оценка сразу влияет на рейтинг.</div>
+          <div className="rank-list">
+            {filtered.map((item, index) => (
+              <button
+                type="button"
+                className={`rank-card ${selected === item.name ? 'on' : ''} ${picked.includes(item.name) ? 'picked' : ''}`}
+                key={item.name}
+                onClick={() => togglePick(item.name)}
+              >
+                <span className="rank-num">{index + 1}</span>
+                {item.image ? <img src={item.image} alt="" /> : <span className="rank-fallback" />}
+                <div>
+                  <small>{item.city || 'отзывы с сайта'}</small>
+                  <b>{item.name}</b>
+                  <p>
+                    {item.summary.count
+                      ? `${formatScore(item.summary.average)} из 5 · ${reviewCountLabel(item.summary.count)}`
+                      : 'Пока нет отзывов — будьте первым'}
+                  </p>
+                </div>
+                <Stars value={item.summary.average} />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <aside className="panel ratings-detail">
+          {activeName ? (
+            <>
+              <div className="chip" style={{ marginBottom: 10 }}>
+                {active?.city || 'новый вуз в рейтинге'}
+              </div>
+              <h2>{activeName}</h2>
+              <p className="score-line">
+                <b>{formatScore(summary.average)}</b>
+                <span>
+                  {' '}
+                  / 5 · {reviewCountLabel(summary.count)}
+                </span>
+              </p>
+              <AspectMeters summary={summary} />
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '16px 0' }}>
+                <button className="primary" onClick={() => onOpenProfile(activeName)}>
+                  Визуальный профиль
+                </button>
+              </div>
+              <ReviewForm universityName={activeName} onSaved={() => setVersion((n) => n + 1)} />
+              <div className="review-list">
+                {reviews.length ? reviews.map((review) => <ReviewCard key={review.id} review={review} />) : (
+                  <p className="meta">Отзывов ещё нет. Первая оценка сразу попадёт в сравнение.</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <p>Найдите университет, чтобы читать и оставлять отзывы.</p>
+          )}
+        </aside>
+      </div>
+    </div>
+  )
+}
+

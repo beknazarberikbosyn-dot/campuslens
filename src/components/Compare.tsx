@@ -1,4 +1,5 @@
 import { ASPECTS } from '../data/reviews'
+import { aspectLabel, useI18n } from '../i18n'
 import {
   combinedCampusScore,
   formatScore,
@@ -6,10 +7,12 @@ import {
   summarizeReviews,
   visualCoverageScore,
 } from '../lib/reviews'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { AspectMeters, Stars } from './Reviews'
 import type { VisualProfile } from '../types'
 
 function Side({ profile }: { profile: VisualProfile }) {
+  const { t } = useI18n()
   const reviews = reviewsForUniversity(profile.university.displayName)
   const summary = summarizeReviews(reviews)
   const visual = visualCoverageScore(profile)
@@ -20,23 +23,23 @@ function Side({ profile }: { profile: VisualProfile }) {
       <h3>{profile.university.displayName}</h3>
       <p className="score-line">
         <b>{combined}</b>
-        <span> итоговый балл CampusLens</span>
+        <span> {t('compare.scoreLabel')}</span>
       </p>
       <p className="meta">
-        Отзывы {formatScore(summary.average)} / 5 · {summary.count} шт. · фотокампус {visual}/100
+        {t('compare.reviewsMeta', { score: formatScore(summary.average), count: summary.count, visual })}
       </p>
       <div className="compare-kpis">
         <div>
           <b>{profile.photos.length}</b>
-          <span>кадров</span>
+          <span>{t('compare.frames')}</span>
         </div>
         <div>
           <b>{verified}</b>
-          <span>подтверждённых</span>
+          <span>{t('compare.verified')}</span>
         </div>
         <div>
           <b>{formatScore(summary.average)}</b>
-          <span>отзывы</span>
+          <span>{t('compare.reviews')}</span>
         </div>
       </div>
       <AspectMeters summary={summary} />
@@ -60,7 +63,7 @@ function Side({ profile }: { profile: VisualProfile }) {
         </blockquote>
       ) : (
         <p className="meta" style={{ marginTop: 12 }}>
-          Отзывов по этому вузу ещё нет — в итоге пока сильнее визуальная часть.
+          {t('compare.noReviews')}
         </p>
       )}
     </article>
@@ -80,6 +83,7 @@ export function CompareView({
   onBack: () => void
   onCompare: (name: string) => void
 }) {
+  const { t, lang } = useI18n()
   const leftReviews = reviewsForUniversity(profile.university.displayName)
   const leftSummary = summarizeReviews(leftReviews)
   const leftVisual = visualCoverageScore(profile)
@@ -110,18 +114,20 @@ export function CompareView({
           <span className="mark" />
           CampusLens
         </button>
-        <button className="ghost" onClick={onBack}>
-          Назад к профилю
-        </button>
+        <div className="topbar-end">
+          <button className="ghost" onClick={onBack}>
+            {t('nav.backProfile')}
+          </button>
+          <LanguageSwitcher />
+        </div>
       </div>
       <div style={{ padding: '12px 28px 0' }}>
         <div className="kicker" style={{ color: 'var(--rust)' }}>
-          Фото + отзывы с заявок
+          {t('compare.kicker')}
         </div>
-        <h1 style={{ fontSize: 42, color: 'inherit' }}>Сравнение</h1>
+        <h1 style={{ fontSize: 42, color: 'inherit' }}>{t('compare.title')}</h1>
         <p className="lede" style={{ color: 'var(--ink-soft)', maxWidth: 640 }}>
-          Итоговый балл складывается из открытых фотографий кампуса и отзывов людей, которые
-          поступали или учились. Отзывы весят примерно половину оценки, если их достаточно.
+          {t('compare.lede')}
         </p>
         <form
           className="search"
@@ -132,22 +138,28 @@ export function CompareView({
             if (input.trim()) onCompare(input.trim())
           }}
         >
-          <input name="other" placeholder="Второй университет" style={{ color: 'var(--ink)' }} />
-          <button type="submit">Сравнить</button>
+          <input name="other" placeholder={t('compare.placeholder')} style={{ color: 'var(--ink)' }} />
+          <button type="submit">{t('compare.submit')}</button>
         </form>
         {other ? (
           <div className="verdict">
             <p>
               {totalWinner
-                ? `Итог с учётом отзывов: впереди ${totalWinner} (${Math.max(leftCombined, rightCombined)} против ${Math.min(leftCombined, rightCombined)}).`
-                : 'Итоговые баллы совпали — смотрите разбивку по отзывам и кадрам.'}
+                ? t('compare.totalWinner', {
+                    name: totalWinner,
+                    hi: Math.max(leftCombined, rightCombined),
+                    lo: Math.min(leftCombined, rightCombined),
+                  })
+                : t('compare.totalTie')}
             </p>
             <p>
-              {reviewWinner
-                ? `По отзывам абитуриентов выше ${reviewWinner}.`
-                : 'Средние оценки по отзывам близки или данных мало.'}{' '}
-              По открытым фото: {profile.university.displayName} {leftVisual}/100
-              {other ? `, ${other.university.displayName} ${rightVisual}/100` : ''}.
+              {reviewWinner ? t('compare.reviewWinner', { name: reviewWinner }) : t('compare.reviewTie')}{' '}
+              {t('compare.photos', {
+                left: profile.university.displayName,
+                leftScore: leftVisual,
+                right: other.university.displayName,
+                rightScore: rightVisual,
+              })}
             </p>
           </div>
         ) : null}
@@ -158,21 +170,21 @@ export function CompareView({
           <Side profile={other} />
         ) : (
           <article className="panel">
-            <p>Введите второй вуз, чтобы сравнить кампусы и отзывы по одним правилам.</p>
+            <p>{t('compare.empty')}</p>
           </article>
         )}
       </div>
       {other && rightSummary ? (
         <div className="panel" style={{ margin: '0 28px 48px' }}>
-          <h3>Где сильнее по отзывам</h3>
+          <h3>{t('compare.aspectsTitle')}</h3>
           <div className="aspect-duel">
             {ASPECTS.map((aspect) => {
               const a = leftSummary.aspects[aspect.id]
               const b = rightSummary.aspects[aspect.id]
-              const lead = a === b ? 'ровно' : a > b ? profile.university.displayName : other.university.displayName
+              const lead = a === b ? t('compare.tie') : a > b ? profile.university.displayName : other.university.displayName
               return (
                 <div key={aspect.id}>
-                  <span>{aspect.label}</span>
+                  <span>{aspectLabel(aspect.id, lang, aspect.label)}</span>
                   <b>
                     {formatScore(a)} — {formatScore(b)}
                   </b>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ASPECTS, ROLES } from '../data/reviews'
+import { aspectLabel, cityLabel, roleLabel, useI18n } from '../i18n'
 import {
   addReview,
   canonicalUniversityName,
@@ -12,6 +13,7 @@ import {
   summarizeReviews,
 } from '../lib/reviews'
 import type { ReviewRole, ReviewScores, ReviewSummary, UniversityReview } from '../types'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { MapSources } from './MapSources'
 
 const EMPTY_SCORES: ReviewScores = {
@@ -31,8 +33,9 @@ export function Stars({
   onChange?: (n: number) => void
   label?: string
 }) {
+  const { t } = useI18n()
   return (
-    <span className={`stars ${onChange ? 'interactive' : ''}`} aria-label={label ?? `${formatScore(value)} из 5`}>
+    <span className={`stars ${onChange ? 'interactive' : ''}`} aria-label={label ?? t('stars.of5', { score: formatScore(value) })}>
       {[1, 2, 3, 4, 5].map((n) => {
         const on = n <= Math.round(value)
         if (!onChange) {
@@ -43,7 +46,7 @@ export function Stars({
           )
         }
         return (
-          <button type="button" key={n} className={on ? 'on' : ''} onClick={() => onChange(n)} aria-label={`${n} из 5`}>
+          <button type="button" key={n} className={on ? 'on' : ''} onClick={() => onChange(n)} aria-label={t('stars.nOf5', { n })}>
             ★
           </button>
         )
@@ -53,11 +56,12 @@ export function Stars({
 }
 
 export function AspectMeters({ summary }: { summary: ReviewSummary }) {
+  const { lang } = useI18n()
   return (
     <div className="aspect-list">
       {ASPECTS.map((aspect) => (
         <div className="aspect-row" key={aspect.id}>
-          <span>{aspect.label}</span>
+          <span>{aspectLabel(aspect.id, lang, aspect.label)}</span>
           <div className="meter">
             <i style={{ width: `${(summary.aspects[aspect.id] / 5) * 100}%` }} />
           </div>
@@ -69,7 +73,8 @@ export function AspectMeters({ summary }: { summary: ReviewSummary }) {
 }
 
 export function ReviewCard({ review }: { review: UniversityReview }) {
-  const role = ROLES.find((r) => r.id === review.role)?.label ?? review.role
+  const { t, lang } = useI18n()
+  const role = roleLabel(review.role, lang, ROLES.find((r) => r.id === review.role)?.label ?? review.role)
   const fromRepo = review.source !== 'user' && Boolean(review.evidenceUrl)
   return (
     <article className="review-card">
@@ -77,7 +82,7 @@ export function ReviewCard({ review }: { review: UniversityReview }) {
         <div>
           <b>{review.author}</b>
           <span className="meta">
-            {role} · {review.createdAt} · {fromRepo ? 'корпус CampusLens' : 'оставлен на сайте'}
+            {role} · {review.createdAt} · {fromRepo ? t('reviews.corpus') : t('reviews.onSite')}
           </span>
         </div>
         <Stars value={review.rating} />
@@ -87,14 +92,14 @@ export function ReviewCard({ review }: { review: UniversityReview }) {
         <span>id {review.id}</span>
         {fromRepo && review.evidenceSearchUrl ? (
           <a href={review.evidenceSearchUrl} target="_blank" rel="noreferrer">
-            найти этот id на GitHub
+            {t('reviews.findId')}
           </a>
         ) : (
-          <span>хранится в этом браузере</span>
+          <span>{t('reviews.inBrowser')}</span>
         )}
         {review.evidenceUrl ? (
           <a href={review.evidenceUrl} target="_blank" rel="noreferrer">
-            открыть файл
+            {t('reviews.openFile')}
           </a>
         ) : null}
       </p>
@@ -109,30 +114,28 @@ export function ReviewProvenance({
   universityName: string
   reviews: UniversityReview[]
 }) {
+  const { t, lang } = useI18n()
   const evidence = reviewEvidence(reviews)
   return (
     <section className="review-evidence">
-      <h3>Как проверить эти отзывы</h3>
+      <h3>{t('reviews.howTitle')}</h3>
       <p>
-        {`На ${universityName} сейчас ${reviewCountLabel(evidence.total)}${
-          evidence.corpus ? `, из них ${evidence.corpus} лежат в открытом репозитории` : ''
-        }. Текст на сайте должен совпадать с файлом на GitHub — это и есть доказательство, что карточка не выдумана в момент открытия страницы.`}
+        {t('reviews.howIntro', {
+          name: universityName,
+          count: reviewCountLabel(evidence.total, lang),
+          corpus: evidence.corpus ? t('reviews.howCorpus', { n: evidence.corpus }) : '',
+        })}
       </p>
       <ul>
         <li>
-          {evidence.file
-            ? `Корпус CampusLens можно открыть и сверить построчно: ${evidence.file}.`
-            : 'Корпус CampusLens можно открыть и сверить построчно.'}
+          {evidence.file ? t('reviews.howFile', { file: evidence.file }) : t('reviews.howFileGeneric')}
         </li>
-        <li>
-          Это не выгрузка из 2ГИС, Google Maps или Яндекс Карт. Чужие отзывы мы не копируем: живые
-          отзывы карт — по официальным ссылкам рядом.
-        </li>
-        <li>Отзыв, оставленный здесь, хранится в браузере и помечен отдельно.</li>
+        <li>{t('reviews.howMaps')}</li>
+        <li>{t('reviews.howBrowser')}</li>
       </ul>
       {evidence.url ? (
         <a className="map-link" href={evidence.url} target="_blank" rel="noreferrer">
-          <b>Открыть исходник на GitHub</b>
+          <b>{t('reviews.openGithub')}</b>
           <span>{evidence.file}</span>
         </a>
       ) : null}
@@ -147,6 +150,7 @@ export function ReviewForm({
   universityName: string
   onSaved: () => void
 }) {
+  const { t, lang } = useI18n()
   const [author, setAuthor] = useState('')
   const [role, setRole] = useState<ReviewRole>('applicant')
   const [rating, setRating] = useState(0)
@@ -157,11 +161,11 @@ export function ReviewForm({
   const submit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
     if (rating < 1) {
-      setError('Поставьте общую оценку от 1 до 5.')
+      setError(t('error.ratingRequired'))
       return
     }
     if (text.trim().length < 20) {
-      setError('Напишите отзыв хотя бы в два предложения — так он полезен при сравнении.')
+      setError(t('error.reviewShort'))
       return
     }
     const filled = Object.fromEntries(
@@ -169,7 +173,7 @@ export function ReviewForm({
     ) as ReviewScores
     addReview({
       universityName,
-      author: author.trim() || 'Аноним',
+      author: author.trim() || t('reviews.anon'),
       role,
       rating,
       scores: filled,
@@ -185,11 +189,11 @@ export function ReviewForm({
 
   return (
     <form className="review-form" onSubmit={submit}>
-      <h3>Оставить отзыв</h3>
-      <p className="meta">Оценка пойдёт в рейтинг вуза и в сравнение кампусов.</p>
+      <h3>{t('reviews.formTitle')}</h3>
+      <p className="meta">{t('reviews.formNote')}</p>
       <label>
-        Имя
-        <input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder="Как к вам обращаться" />
+        {t('reviews.name')}
+        <input value={author} onChange={(e) => setAuthor(e.target.value)} placeholder={t('reviews.namePh')} />
       </label>
       <div className="role-row">
         {ROLES.map((item) => (
@@ -199,18 +203,18 @@ export function ReviewForm({
             className={role === item.id ? 'on' : ''}
             onClick={() => setRole(item.id)}
           >
-            {item.label}
+            {roleLabel(item.id, lang, item.label)}
           </button>
         ))}
       </div>
       <div className="form-stars">
-        <span>Общая оценка</span>
+        <span>{t('reviews.overall')}</span>
         <Stars value={rating} onChange={setRating} />
       </div>
       <div className="aspect-inputs">
         {ASPECTS.map((aspect) => (
           <label key={aspect.id}>
-            {aspect.label}
+            {aspectLabel(aspect.id, lang, aspect.label)}
             <Stars
               value={scores[aspect.id]}
               onChange={(n) => setScores((prev) => ({ ...prev, [aspect.id]: n }))}
@@ -219,39 +223,44 @@ export function ReviewForm({
         ))}
       </div>
       <label>
-        Как вы выбирали вуз и что увидели
+        {t('reviews.textLabel')}
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={4}
-          placeholder="Кампус, общежитие, учёба, город — что совпало с заявкой, а что нет."
+          placeholder={t('reviews.textPh')}
         />
       </label>
       {error ? <p className="form-error">{error}</p> : null}
       <button className="primary" type="submit">
-        Опубликовать отзыв
+        {t('reviews.publish')}
       </button>
     </form>
   )
 }
 
 function ReviewCompare({ left, right }: { left: string; right: string }) {
+  const { t, lang } = useI18n()
   const all = loadAllReviews()
   const a = summarizeReviews(reviewsForUniversity(left, all))
   const b = summarizeReviews(reviewsForUniversity(right, all))
   const winner = a.average === b.average ? null : a.average > b.average ? left : right
   return (
     <div className="review-compare">
-      <div className="kicker">Сравнение по отзывам</div>
+      <div className="kicker">{t('ratings.compareKicker')}</div>
       <h2>
-        {left} и {right}
+        {left} {t('ratings.and')} {right}
       </h2>
       <p className="lede" style={{ color: 'var(--ink-soft)', maxWidth: 'none' }}>
         {winner
-          ? `По отзывам абитуриентов и студентов впереди ${winner}: ${formatScore(winner === left ? a.average : b.average)} против ${formatScore(winner === left ? b.average : a.average)}.`
+          ? t('ratings.compareLead', {
+              winner,
+              hi: formatScore(winner === left ? a.average : b.average),
+              lo: formatScore(winner === left ? b.average : a.average),
+            })
           : a.count && b.count
-            ? 'Средние оценки совпадают — смотрите разбивку по кампусу, общежитию и городу.'
-            : 'Для полного сравнения не хватает отзывов по одному из вузов.'}
+            ? t('ratings.compareTie')
+            : t('ratings.compareMissing')}
       </p>
       <div className="compare">
         {[
@@ -262,7 +271,10 @@ function ReviewCompare({ left, right }: { left: string; right: string }) {
             <h3>{side.name}</h3>
             <p className="score-line">
               <b>{formatScore(side.summary.average)}</b>
-              <span> / 5 · {reviewCountLabel(side.summary.count)}</span>
+              <span>
+                {' '}
+                / 5 · {reviewCountLabel(side.summary.count, lang)}
+              </span>
             </p>
             <AspectMeters summary={side.summary} />
           </article>
@@ -281,6 +293,7 @@ export function RatingsView({
   onHome: () => void
   onOpenProfile: (name: string) => void
 }) {
+  const { t, lang } = useI18n()
   const [, setVersion] = useState(0)
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(focus ?? '')
@@ -316,24 +329,23 @@ export function RatingsView({
           <span className="mark" />
           CampusLens
         </button>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <span className="chip">отзывы абитуриентов</span>
+        <div className="topbar-end">
+          <span className="chip">{t('chip.reviews')}</span>
           <button className="ghost" onClick={onHome}>
-            На главную
+            {t('nav.home')}
           </button>
+          <LanguageSwitcher />
         </div>
       </div>
 
       <section className="ratings-hero">
         <div>
           <div className="kicker" style={{ color: 'var(--rust)' }}>
-            Не буклет, а заявки и жизнь после них
+            {t('ratings.kicker')}
           </div>
-          <h1>Оценки университетов по отзывам</h1>
+          <h1>{t('ratings.title')}</h1>
           <p className="lede" style={{ color: 'var(--ink-soft)' }}>
-            Люди, которые подавали документы или уже учатся, оставляют отзывы о кампусе, общежитии,
-            учёбе и городе. По каждому демо-вузу собрано 16 отзывов CampusLens. Карточки 2ГИС, Google
-            и Яндекса открываются официально — чужие тексты мы не переносим.
+            {t('ratings.lede')}
           </p>
         </div>
         <form
@@ -350,10 +362,10 @@ export function RatingsView({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Найти вуз или оставить отзыв"
+            placeholder={t('ratings.searchPh')}
             style={{ color: 'var(--ink)' }}
           />
-          <button type="submit">Открыть</button>
+          <button type="submit">{t('ratings.open')}</button>
         </form>
       </section>
 
@@ -361,7 +373,7 @@ export function RatingsView({
 
       <div className="ratings-layout">
         <div>
-          <div className="rank-hint">Отметьте два вуза, чтобы сравнить отзывы. Оценка сразу влияет на рейтинг.</div>
+          <div className="rank-hint">{t('ratings.hint')}</div>
           <div className="rank-list">
             {filtered.map((item, index) => (
               <button
@@ -373,12 +385,12 @@ export function RatingsView({
                 <span className="rank-num">{index + 1}</span>
                 {item.image ? <img src={item.image} alt="" /> : <span className="rank-fallback" />}
                 <div>
-                  <small>{item.city || 'отзывы с сайта'}</small>
+                  <small>{cityLabel(item.city, lang) || t('ratings.fromSite')}</small>
                   <b>{item.name}</b>
                   <p>
                     {item.summary.count
-                      ? `${formatScore(item.summary.average)} из 5 · ${reviewCountLabel(item.summary.count)}`
-                      : 'Пока нет отзывов — будьте первым'}
+                      ? `${formatScore(item.summary.average)} / 5 · ${reviewCountLabel(item.summary.count, lang)}`
+                      : t('ratings.noReviews')}
                   </p>
                 </div>
                 <Stars value={item.summary.average} />
@@ -391,14 +403,14 @@ export function RatingsView({
           {activeName ? (
             <>
               <div className="chip" style={{ marginBottom: 10 }}>
-                {active?.city || 'новый вуз в рейтинге'}
+                {cityLabel(active?.city ?? '', lang) || t('ratings.newUni')}
               </div>
               <h2>{activeName}</h2>
               <p className="score-line">
                 <b>{formatScore(summary.average)}</b>
                 <span>
                   {' '}
-                  / 5 · {reviewCountLabel(summary.count)}
+                  / 5 · {reviewCountLabel(summary.count, lang)}
                 </span>
               </p>
               <AspectMeters summary={summary} />
@@ -406,12 +418,12 @@ export function RatingsView({
               {activeName ? <ReviewProvenance universityName={activeName} reviews={reviewsForUniversity(activeName)} /> : null}
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', margin: '16px 0' }}>
                 <button className="primary" onClick={() => onOpenProfile(activeName)}>
-                  Визуальный профиль
+                  {t('ratings.visual')}
                 </button>
               </div>
               <div className="role-row" style={{ margin: '8px 0 4px' }}>
                 <button type="button" className={roleFilter === 'all' ? 'on' : ''} onClick={() => setRoleFilter('all')}>
-                  все {summary.count}
+                  {t('ratings.all', { count: summary.count })}
                 </button>
                 {ROLES.map((item) => (
                   <button
@@ -420,19 +432,19 @@ export function RatingsView({
                     className={roleFilter === item.id ? 'on' : ''}
                     onClick={() => setRoleFilter(item.id)}
                   >
-                    {item.label}
+                    {roleLabel(item.id, lang, item.label)}
                   </button>
                 ))}
               </div>
               <ReviewForm universityName={activeName} onSaved={() => setVersion((n) => n + 1)} />
               <div className="review-list">
                 {reviews.length ? reviews.map((review) => <ReviewCard key={review.id} review={review} />) : (
-                  <p className="meta">Отзывов ещё нет. Первая оценка сразу попадёт в сравнение.</p>
+                  <p className="meta">{t('ratings.emptyList')}</p>
                 )}
               </div>
             </>
           ) : (
-            <p>Найдите университет, чтобы читать и оставлять отзывы.</p>
+            <p>{t('ratings.findFirst')}</p>
           )}
         </aside>
       </div>
@@ -449,6 +461,7 @@ export function ProfileReviews({
   onSaved: () => void
   onRatings: () => void
 }) {
+  const { t, lang } = useI18n()
   const reviews = reviewsForUniversity(universityName)
   const summary = summarizeReviews(reviews)
   return (
@@ -456,21 +469,18 @@ export function ProfileReviews({
       <div className="panel">
         <div className="review-head">
           <div>
-            <h3>Отзывы абитуриентов и студентов</h3>
-            <p className="meta">
-              Оценки учитываются при сравнении вузов. На картах открываются официальные карточки,
-              без копирования чужих отзывов.
-            </p>
+            <h3>{t('reviews.profileTitle')}</h3>
+            <p className="meta">{t('reviews.profileNote')}</p>
           </div>
           <button className="ghost" onClick={onRatings}>
-            Весь рейтинг
+            {t('reviews.allRatings')}
           </button>
         </div>
         <p className="score-line">
           <b>{formatScore(summary.average)}</b>
           <span>
             {' '}
-            / 5 · {reviewCountLabel(summary.count)}
+            / 5 · {reviewCountLabel(summary.count, lang)}
           </span>
         </p>
         <AspectMeters summary={summary} />

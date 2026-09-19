@@ -1,13 +1,9 @@
 import { FILTERS } from '../data/catalog'
+import { filterLabel, levelLabel, useI18n } from '../i18n'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { MapSources } from './MapSources'
 import { ProfileReviews } from './Reviews'
 import type { FactItem, Photo, VisualProfile } from '../types'
-
-const LEVEL: Record<Photo['level'], string> = {
-  verified: 'подтверждено',
-  likely: 'вероятно',
-  uncertain: 'нехватка данных',
-}
 
 function osm(lat: number, lon: number) {
   const d = 0.02
@@ -33,6 +29,7 @@ export function ProfileView({
   onRatings: () => void
   onReviewSaved: () => void
 }) {
+  const { t, lang } = useI18n()
   const photos =
     filter === 'all' ? profile.photos : profile.photos.filter((p) => p.category === filter)
   const hero =
@@ -50,16 +47,17 @@ export function ProfileView({
           <span className="mark" />
           CampusLens
         </button>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="topbar-end">
           <button className="ghost" onClick={onRatings}>
-            Оценки вузов
+            {t('nav.ratings')}
           </button>
           <button className="ghost" onClick={onCompare}>
-            Сравнить вуз
+            {t('nav.compare')}
           </button>
           <button className="ghost" onClick={onHome}>
-            Новый поиск
+            {t('nav.newSearch')}
           </button>
+          <LanguageSwitcher />
         </div>
       </div>
 
@@ -68,40 +66,40 @@ export function ProfileView({
           {hero ? <img src={hero.thumb} alt={hero.title} /> : null}
           {hero ? (
             <div className="cap">
-              {hero.title} · {hero.date ?? 'дата неизвестна'} · {LEVEL[hero.level]}
+              {hero.title} · {hero.date ?? t('profile.dateUnknown')} · {levelLabel(hero.level, lang)}
             </div>
           ) : null}
         </div>
         <div className="hero-copy">
-          <div className="chip">Визуальный профиль</div>
+          <div className="chip">{t('profile.chip')}</div>
           <h1>{u.displayName}</h1>
           <p className="meta">
-            {profile.city?.name ?? 'город уточняется'}
-            {profile.distanceKm != null ? ` · ${profile.distanceKm.toFixed(1)} км до центра` : ''}
+            {profile.city?.name ?? t('profile.cityUnknown')}
+            {profile.distanceKm != null ? ` · ${t('profile.km', { km: profile.distanceKm.toFixed(1) })}` : ''}
             {' · '}
-            {(profile.elapsedMs / 1000).toFixed(1)} сек
+            {t('profile.sec', { sec: (profile.elapsedMs / 1000).toFixed(1) })}
           </p>
           <p className="desc">{profile.description}</p>
           <div className="kpi">
             <div>
               <b>{profile.photos.length}</b>
-              <span>проверенных кадров</span>
+              <span>{t('profile.photos')}</span>
             </div>
             <div>
               <b>{verified}</b>
-              <span>высокая достоверность</span>
+              <span>{t('profile.high')}</span>
             </div>
             <div>
               <b>{profile.duplicatesRemoved}</b>
-              <span>дублей снято</span>
+              <span>{t('profile.dupes')}</span>
             </div>
             <div>
               <b>{new Set(profile.photos.map((p) => p.category)).size}</b>
-              <span>категорий</span>
+              <span>{t('profile.cats')}</span>
             </div>
           </div>
           <p className="meta">
-            Источники: {profile.sourcesUsed.join(', ')}. Карточка:{' '}
+            {t('profile.sources', { sources: profile.sourcesUsed.join(', ') })}{' '}
             <a href={u.pageUrl} target="_blank" rel="noreferrer">
               Wikipedia
             </a>
@@ -112,11 +110,10 @@ export function ProfileView({
       {profile.facts?.items.length ? (
         <section className="applicant-facts">
           <div className="panel facts-panel">
-            <div className="chip">Справка, не буклет приёмной</div>
-            <h3>Что важно абитуриенту</h3>
+            <div className="chip">{t('profile.factsChip')}</div>
+            <h3>{t('profile.factsTitle')}</h3>
             <p className="meta" style={{ marginBottom: 14 }}>
-              Грант, стоимость, общежитие и пороги — ориентиры из открытых официальных страниц, не договор
-              с вузом. Перед подачей сверяйте цифру и дедлайн на сайте приёмной.
+              {t('profile.factsNote')}
             </p>
             <div className="facts-grid">
               {profile.facts.items.map((item) => (
@@ -129,7 +126,7 @@ export function ProfileView({
 
       {profile.warnings.length ? (
         <div className="warns">
-          <b>Честная неопределённость</b>
+          <b>{t('profile.uncertainty')}</b>
           <ul>
             {profile.warnings.map((w) => (
               <li key={w}>{w}</li>
@@ -140,7 +137,7 @@ export function ProfileView({
 
       <div className="facts">
         <div className="panel">
-          <h3>Климат, транспорт, стоимость</h3>
+          <h3>{t('profile.climateTitle')}</h3>
           {profile.city ? (
             <>
               <p>
@@ -149,18 +146,18 @@ export function ProfileView({
               <p style={{ marginTop: 8 }}>{profile.city.transport}</p>
               <p style={{ marginTop: 8 }}>{profile.city.livingCost}</p>
               <p className="meta" style={{ marginTop: 10 }}>
-                Ориентиры по открытым данным города, не официальная статистика вуза.
+                {t('profile.cityNote')}
               </p>
             </>
           ) : (
-            <p>Для этого города нет проверенного блока бытовых ориентиров — не выдумываем цифры.</p>
+            <p>{t('profile.noCity')}</p>
           )}
         </div>
         <div className="panel">
-          <h3>Карта кампуса</h3>
+          <h3>{t('profile.mapTitle')}</h3>
           {u.lat != null && u.lon != null ? (
             <>
-              <iframe className="map" title="Карта кампуса" src={osm(u.lat, u.lon)} />
+              <iframe className="map" title={t('profile.mapIframe')} src={osm(u.lat, u.lon)} />
               <MapSources
                 universityName={u.displayName}
                 lat={u.lat}
@@ -170,7 +167,7 @@ export function ProfileView({
             </>
           ) : (
             <>
-              <p>Координаты Wikipedia не найдены, карту не рисуем наугад.</p>
+              <p>{t('profile.noCoords')}</p>
               <MapSources universityName={u.displayName} place={profile.campusPlace} />
             </>
           )}
@@ -186,7 +183,7 @@ export function ProfileView({
       <div className="filters">
         {FILTERS.map((f) => (
           <button key={f.id} className={filter === f.id ? 'on' : ''} onClick={() => setFilter(f.id)}>
-            {f.label}
+            {filterLabel(f.id, lang, f.label)}
             {f.id !== 'all'
               ? ` ${profile.photos.filter((p) => p.category === f.id).length}`
               : ` ${profile.photos.length}`}
@@ -200,25 +197,23 @@ export function ProfileView({
             <img src={p.thumb} alt={p.title} />
             <span className="figcaption">
               <span className={`badge ${p.level}`}>
-                {LEVEL[p.level]} · {p.confidence}%
+                {levelLabel(p.level, lang)} · {p.confidence}%
               </span>
               <span className="row">
-                <span>{FILTERS.find((f) => f.id === p.category)?.label}</span>
-                <span>{p.date ?? 'без даты'}</span>
+                <span>{filterLabel(p.category, lang, FILTERS.find((f) => f.id === p.category)?.label ?? p.category)}</span>
+                <span>{p.date ?? t('profile.noDate')}</span>
               </span>
             </span>
           </button>
         ))}
       </div>
 
-      {!photos.length ? (
-        <p className="empty">В этой категории нет кадров, которые сервис готов показать.</p>
-      ) : null}
+      {!photos.length ? <p className="empty">{t('profile.noPhotos')}</p> : null}
 
       {profile.rejected.length ? (
         <details className="panel" style={{ margin: '0 28px 48px' }}>
           <summary>
-            <b>Что не вошло</b> · {profile.rejected.length} файлов отброшено
+            <b>{t('profile.rejected')}</b> · {t('profile.rejectedCount', { count: profile.rejected.length })}
           </summary>
           <ul>
             {profile.rejected.map((r) => (
@@ -255,27 +250,28 @@ function FactCard({ item }: { item: FactItem }) {
 }
 
 export function PhotoModal({ photo, onClose }: { photo: Photo; onClose: () => void }) {
+  const { t, lang } = useI18n()
   return (
     <div className="lightbox" onClick={onClose}>
-      <button className="close" onClick={onClose} aria-label="Закрыть">
+      <button className="close" onClick={onClose} aria-label={t('profile.close')}>
         ×
       </button>
       <img src={photo.thumb} alt={photo.title} onClick={(e) => e.stopPropagation()} />
       <aside onClick={(e) => e.stopPropagation()}>
         <p className={`badge ${photo.level}`}>
-          {LEVEL[photo.level]} · {photo.confidence}%
+          {levelLabel(photo.level, lang)} · {photo.confidence}%
         </p>
         <h2>{photo.title}</h2>
-        <p>Автор: {photo.author}</p>
-        <p>Лицензия: {photo.license}</p>
-        <p>Дата: {photo.date ?? 'не указана источником'}</p>
+        <p>{t('profile.author', { name: photo.author })}</p>
+        <p>{t('profile.license', { name: photo.license })}</p>
+        <p>{t('profile.date', { date: photo.date ?? t('profile.dateMissing') })}</p>
         <p>
-          Источник:{' '}
+          {t('profile.source')}{' '}
           <a href={photo.sourceUrl} target="_blank" rel="noreferrer">
-            открыть на Wikimedia Commons
+            {t('profile.openCommons')}
           </a>
         </p>
-        <h3>Почему такая оценка</h3>
+        <h3>{t('profile.why')}</h3>
         <ul>
           {photo.reasons.map((r) => (
             <li key={r}>{r}</li>

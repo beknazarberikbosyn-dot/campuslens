@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { CompareView } from './components/Compare'
+import { LanguageSwitcher } from './components/LanguageSwitcher'
 import { LocationBrowse } from './components/LocationBrowse'
 import { PhotoModal, ProfileView } from './components/Profile'
 import { RatingsView, Stars } from './components/Reviews'
 import { SUGGESTIONS } from './data/catalog'
+import { cityLabel, stepLabel, suggestionCopy, useI18n } from './i18n'
 import { LOCATION_PRESETS } from './lib/places'
 import { buildVisualProfile, searchUniversity } from './lib/buildProfile'
 import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
@@ -16,7 +18,29 @@ function Logo() {
   return <span className="mark" />
 }
 
+function Topbar({
+  onHome,
+  extra,
+}: {
+  onHome?: () => void
+  extra?: ReactNode
+}) {
+  return (
+    <div className="topbar">
+      <button className="brand" onClick={onHome}>
+        <Logo />
+        CampusLens
+      </button>
+      <div className="topbar-end">
+        {extra}
+        <LanguageSwitcher />
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
+  const { t, lang } = useI18n()
   const [view, setView] = useState<View>('home')
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<WikiHit[]>([])
@@ -45,7 +69,7 @@ export default function App() {
       setProfile(built)
       setView('profile')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Не получилось собрать профиль')
+      setError(e instanceof Error ? e.message : t('error.profile'))
       setView('empty')
     } finally {
       window.clearInterval(tick)
@@ -60,25 +84,25 @@ export default function App() {
     setView('pipeline')
     setProgress({
       steps: [
-        { id: 'resolve', label: 'Ищем университет', done: false, detail: '' },
-        { id: 'collect', label: 'Собираем открытые источники', done: false, detail: '' },
-        { id: 'maps', label: 'Открываем карточки на картах', done: false, detail: '' },
-        { id: 'facts', label: 'Собираем справку для абитуриента', done: false, detail: '' },
-        { id: 'dedupe', label: 'Удаляем дубликаты и мусор', done: false, detail: '' },
-        { id: 'verify', label: 'Проверяем принадлежность', done: false, detail: '' },
-        { id: 'sort', label: 'Раскладываем по категориям', done: false, detail: '' },
-        { id: 'write', label: 'Собираем визуальный профиль', done: false, detail: '' },
+        { id: 'resolve', label: t('step.resolve'), done: false, detail: '' },
+        { id: 'collect', label: t('step.collect'), done: false, detail: '' },
+        { id: 'maps', label: t('step.maps'), done: false, detail: '' },
+        { id: 'facts', label: t('step.facts'), done: false, detail: '' },
+        { id: 'dedupe', label: t('step.dedupe'), done: false, detail: '' },
+        { id: 'verify', label: t('step.verify'), done: false, detail: '' },
+        { id: 'sort', label: t('step.sort'), done: false, detail: '' },
+        { id: 'write', label: t('step.write'), done: false, detail: '' },
       ],
       found: 0,
       kept: 0,
-      message: 'Разбираем запрос',
+      message: t('pipeline.ready'),
     })
     try {
       const found = await searchUniversity(q)
       setHits(found)
       if (!found.length) {
         setView('empty')
-        setError('Университет не найден. Уточните название — не показываем чужой кампус.')
+        setError(t('error.notFound'))
         return
       }
       if (needsDisambiguation(q, found)) {
@@ -87,7 +111,7 @@ export default function App() {
       }
       await run(found[0], q)
     } catch {
-      setError('Поиск Wikipedia недоступен. Проверьте сеть и попробуйте снова.')
+      setError(t('error.wiki'))
       setView('empty')
     }
   }
@@ -120,29 +144,24 @@ export default function App() {
   if (view === 'home') {
     return (
       <div className="dark">
-        <div className="topbar">
-          <button className="brand">
-            <Logo />
-            CampusLens
-          </button>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-            <button className="ghost" onClick={() => openPlaces()}>
-              Вузы по городу
-            </button>
-            <button className="ghost" onClick={() => openRatings()}>
-              Оценки вузов
-            </button>
-            <span className="chip">LOCUS Case 01 · Visual Campus</span>
-          </div>
-        </div>
+        <Topbar
+          extra={
+            <>
+              <button className="ghost" onClick={() => openPlaces()}>
+                {t('nav.places')}
+              </button>
+              <button className="ghost" onClick={() => openRatings()}>
+                {t('nav.ratings')}
+              </button>
+              <span className="chip">{t('chip.case')}</span>
+            </>
+          }
+        />
         <section className="hero">
           <div>
-            <div className="kicker">Не буклет приёмной комиссии</div>
-            <h1>Университет глазами студента. За 30 секунд.</h1>
-            <p className="lede">
-              Введите название вуза. Сервис найдёт открытые фотографии кампуса, общежитий, аудиторий,
-              библиотек и города, плюс справку: грант, общежитие и условия поступления.
-            </p>
+            <div className="kicker">{t('home.kicker')}</div>
+            <h1>{t('home.title')}</h1>
+            <p className="lede">{t('home.lede')}</p>
             <form
               className="search"
               onSubmit={(e) => {
@@ -153,10 +172,10 @@ export default function App() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Nazarbayev University, КазНУ, MIT…"
+                placeholder={t('home.searchPlaceholder')}
                 autoFocus
               />
-              <button type="submit">Собрать профиль</button>
+              <button type="submit">{t('home.searchSubmit')}</button>
             </form>
             <form
               className="place-search"
@@ -168,16 +187,16 @@ export default function App() {
               <input
                 value={placeCountry}
                 onChange={(e) => setPlaceCountry(e.target.value)}
-                placeholder="Страна"
+                placeholder={t('home.countryPlaceholder')}
                 autoComplete="country-name"
               />
               <input
                 value={placeCity}
                 onChange={(e) => setPlaceCity(e.target.value)}
-                placeholder="Город"
+                placeholder={t('home.cityPlaceholder')}
                 autoComplete="address-level2"
               />
-              <button type="submit">Список вузов</button>
+              <button type="submit">{t('home.listUnis')}</button>
             </form>
             <div className="place-chips">
               {LOCATION_PRESETS.slice(0, 4).map((p) => (
@@ -187,26 +206,26 @@ export default function App() {
                   className="ghost"
                   onClick={() => openPlaces(p.country, p.city, true)}
                 >
-                  {p.city}
+                  {cityLabel(p.city, lang)}
                 </button>
               ))}
             </div>
             <div className="stats-row">
               <div>
                 <b>30с</b>
-                цель кейса
+                {t('home.stat30')}
               </div>
               <div>
                 <b>0</b>
-                стоковых подмен
+                {t('home.statStock')}
               </div>
               <div>
                 <b>Wiki</b>
-                только открытые источники
+                {t('home.statWiki')}
               </div>
               <div>
                 <b>{topRated[0] ? formatScore(topRated[0].summary.average) : '—'}</b>
-                лучший средний отзыв
+                {t('home.statBest')}
               </div>
             </div>
           </div>
@@ -215,62 +234,63 @@ export default function App() {
               <button key={s.title} className="polaroid" onClick={() => void submit(s.title)}>
                 <img src={s.image} alt="" />
                 <span>
-                  {s.city} · {s.title}
+                  {cityLabel(s.city, lang)} · {s.title}
                 </span>
               </button>
             ))}
           </div>
         </section>
         <section className="suggest">
-          <h2>Попробуйте любой вуз — не только демо</h2>
+          <h2>{t('home.tryAny')}</h2>
           <div className="grid-3">
-            {SUGGESTIONS.map((s) => (
-              <button key={s.title} className="card-uni" onClick={() => void submit(s.title)}>
-                <img src={s.image} alt="" />
-                <div>
-                  <small>{s.city}</small>
-                  <b>{s.title}</b>
-                  <p>{s.blurb}</p>
-                  <p className="fact-line">{s.fact}</p>
-                </div>
-              </button>
-            ))}
+            {SUGGESTIONS.map((s) => {
+              const copy = suggestionCopy(s.title, lang, s)
+              return (
+                <button key={s.title} className="card-uni" onClick={() => void submit(s.title)}>
+                  <img src={s.image} alt="" />
+                  <div>
+                    <small>{cityLabel(s.city, lang)}</small>
+                    <b>{s.title}</b>
+                    <p>{copy.blurb}</p>
+                    <p className="fact-line">{copy.fact}</p>
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </section>
         <section className="suggest">
-          <h2>Справки для абитуриента</h2>
-          <p className="home-note">
-            Грант, общежитие и условия поступления — с официальных страниц. Откройте профиль, чтобы
-            увидеть источники и фото не только кампуса: библиотеки, лаборатории, общежития, спорт.
-          </p>
+          <h2>{t('home.factsTitle')}</h2>
+          <p className="home-note">{t('home.factsNote')}</p>
           <div className="grid-3">
-            {SUGGESTIONS.map((s) => (
-              <button key={`fact-${s.title}`} className="card-uni fact-card-home" onClick={() => void submit(s.title)}>
-                <div>
-                  <small>{s.city} · справка</small>
-                  <b>{s.title}</b>
-                  <p>{s.fact}</p>
-                </div>
-              </button>
-            ))}
+            {SUGGESTIONS.map((s) => {
+              const copy = suggestionCopy(s.title, lang, s)
+              return (
+                <button key={`fact-${s.title}`} className="card-uni fact-card-home" onClick={() => void submit(s.title)}>
+                  <div>
+                    <small>
+                      {cityLabel(s.city, lang)} · {t('home.factBadge')}
+                    </small>
+                    <b>{s.title}</b>
+                    <p>{copy.fact}</p>
+                  </div>
+                </button>
+              )
+            })}
           </div>
         </section>
         <section className="suggest">
-          <h2>Оценки по отзывам с заявок</h2>
-          <p className="home-note">
-            Абитуриенты и студенты оставляют отзывы о кампусе, общежитии и городе. На демо-вузах —
-            по 16 отзывов CampusLens. Ссылки на 2ГИС, Google и Яндекс ведут на официальные карточки,
-            без копирования чужих текстов.
-          </p>
+          <h2>{t('home.ratingsTitle')}</h2>
+          <p className="home-note">{t('home.ratingsNote')}</p>
           <div className="grid-3">
             {topRated.map((item) => (
               <button key={item.name} className="card-uni" onClick={() => openRatings(item.name)}>
                 {item.image ? <img src={item.image} alt="" /> : null}
                 <div>
-                  <small>{item.city || 'рейтинг'}</small>
+                  <small>{cityLabel(item.city, lang) || t('home.ratingCity')}</small>
                   <b>{item.name}</b>
                   <p>
-                    {formatScore(item.summary.average)} из 5 · {reviewCountLabel(item.summary.count)}
+                    {formatScore(item.summary.average)} / 5 · {reviewCountLabel(item.summary.count, lang)}
                   </p>
                   <Stars value={item.summary.average} />
                 </div>
@@ -278,7 +298,7 @@ export default function App() {
             ))}
           </div>
           <button className="ghost" style={{ marginTop: 18 }} onClick={() => openRatings()}>
-            Открыть все оценки
+            {t('home.openAll')}
           </button>
         </section>
       </div>
@@ -288,16 +308,11 @@ export default function App() {
   if (view === 'disambiguate') {
     return (
       <div className="dark">
-        <div className="topbar">
-          <button className="brand" onClick={home}>
-            <Logo />
-            CampusLens
-          </button>
-        </div>
+        <Topbar onHome={home} />
         <div className="disamb">
-          <div className="kicker">Неоднозначный запрос</div>
-          <h1>Какой университет вы имели в виду?</h1>
-          <p className="lede">Лучше спросить, чем показать чужой кампус.</p>
+          <div className="kicker">{t('disamb.kicker')}</div>
+          <h1>{t('disamb.title')}</h1>
+          <p className="lede">{t('disamb.lede')}</p>
           {hits.map((h) => (
             <button key={`${h.lang}-${h.title}`} className="choice" onClick={() => void run(h, query)}>
               <b>{h.title}</b>
@@ -312,25 +327,19 @@ export default function App() {
   if (view === 'pipeline') {
     return (
       <div className="dark">
-        <div className="topbar">
-          <button className="brand" onClick={home}>
-            <Logo />
-            CampusLens
-          </button>
-          <span className="chip">проверка источников</span>
-        </div>
+        <Topbar onHome={home} extra={<span className="chip">{t('chip.checking')}</span>} />
         <div className="pipeline">
           <div className="kicker">{query}</div>
           <div className="timer">{seconds}s</div>
-          <p>{progress?.message ?? 'Готовим поиск'}</p>
+          <p>{progress?.message ?? t('pipeline.ready')}</p>
           {(progress?.steps ?? []).map((s) => (
             <div className="step" key={s.id}>
               <span className={`dot ${s.done ? 'ok' : 'on'}`} />
               <div>
-                <b>{s.label}</b>
-                <div className="chip">{s.detail || 'в работе'}</div>
+                <b>{stepLabel(s.id, lang, s.label)}</b>
+                <div className="chip">{s.detail || t('pipeline.working')}</div>
               </div>
-              <span>{s.done ? 'готово' : '…'}</span>
+              <span>{s.done ? t('pipeline.done') : '…'}</span>
             </div>
           ))}
         </div>
@@ -341,17 +350,12 @@ export default function App() {
   if (view === 'empty') {
     return (
       <div className="dark">
-        <div className="topbar">
-          <button className="brand" onClick={home}>
-            <Logo />
-            CampusLens
-          </button>
-        </div>
+        <Topbar onHome={home} />
         <div className="empty">
-          <h1>Честный отказ</h1>
+          <h1>{t('empty.title')}</h1>
           <p className="lede">{error}</p>
           <button className="primary" onClick={home}>
-            Изменить запрос
+            {t('empty.retry')}
           </button>
         </div>
       </div>

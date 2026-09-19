@@ -1,5 +1,6 @@
 import { ALIASES, SUGGESTIONS, normalize } from '../data/catalog'
 import { SEED_REVIEWS } from '../data/reviews'
+import type { Lang } from '../i18n/lang'
 import type {
   RankedUniversity,
   ReviewAspectId,
@@ -192,7 +193,9 @@ export function formatScore(value: number): string {
   return value % 1 === 0 ? String(value) : value.toFixed(1)
 }
 
-export function reviewCountLabel(count: number): string {
+export function reviewCountLabel(count: number, lang: Lang = 'ru'): string {
+  if (lang === 'en') return count === 1 ? `${count} review` : `${count} reviews`
+  if (lang === 'kk') return `${count} пікір`
   const n = Math.abs(count) % 100
   const d = n % 10
   if (n > 10 && n < 20) return `${count} отзывов`

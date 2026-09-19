@@ -148,3 +148,25 @@ export type RankedUniversity = {
   blurb: string
   summary: ReviewSummary
 }
+
+export type LocationUniversity = {
+  id: string
+  name: string
+  city: string
+  country: string
+  lat: number | null
+  lon: number | null
+  searchName: string
+  source: 'wikidata' | 'overpass'
+}
+
+export type LocationSearchResult = {
+  country: string
+  city: string
+  queryCountry: string
+  queryCity: string
+  lat: number | null
+  lon: number | null
+  universities: LocationUniversity[]
+  sourcesUsed: string[]
+}

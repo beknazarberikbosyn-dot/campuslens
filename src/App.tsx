@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react'
 import { CompareView } from './components/Compare'
+import { LocationBrowse } from './components/LocationBrowse'
 import { PhotoModal, ProfileView } from './components/Profile'
 import { RatingsView, Stars } from './components/Reviews'
 import { SUGGESTIONS } from './data/catalog'
+import { LOCATION_PRESETS } from './lib/places'
 import { buildVisualProfile, searchUniversity } from './lib/buildProfile'
 import { formatScore, rankedUniversities, reviewCountLabel } from './lib/reviews'
 import { needsDisambiguation } from './lib/wiki'
 import type { Photo, Progress, VisualProfile, WikiHit } from './types'
 
-type View = 'home' | 'disambiguate' | 'pipeline' | 'profile' | 'compare' | 'empty' | 'ratings'
+type View = 'home' | 'disambiguate' | 'pipeline' | 'profile' | 'compare' | 'empty' | 'ratings' | 'places'
 
 function Logo() {
   return <span className="mark" />
@@ -27,6 +29,9 @@ export default function App() {
   const [elapsed, setElapsed] = useState(0)
   const [, setReviewVersion] = useState(0)
   const [ratingsFocus, setRatingsFocus] = useState<string | null>(null)
+  const [placeCountry, setPlaceCountry] = useState('')
+  const [placeCity, setPlaceCity] = useState('')
+  const [placeAuto, setPlaceAuto] = useState(false)
 
   const run = async (hit: WikiHit, q: string) => {
     setView('pipeline')
@@ -93,6 +98,14 @@ export default function App() {
     setOpened(null)
     setProgress(null)
     setRatingsFocus(null)
+    setPlaceAuto(false)
+  }
+
+  const openPlaces = (country = placeCountry, city = placeCity, auto = false) => {
+    setPlaceCountry(country)
+    setPlaceCity(city)
+    setPlaceAuto(auto)
+    setView('places')
   }
 
   const openRatings = (name?: string) => {
@@ -112,6 +125,9 @@ export default function App() {
             CampusLens
           </button>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button className="ghost" onClick={() => openPlaces()}>
+              Вузы по городу
+            </button>
             <button className="ghost" onClick={() => openRatings()}>
               Оценки вузов
             </button>
@@ -141,6 +157,39 @@ export default function App() {
               />
               <button type="submit">Собрать профиль</button>
             </form>
+            <form
+              className="place-search"
+              onSubmit={(e) => {
+                e.preventDefault()
+                openPlaces(placeCountry, placeCity, true)
+              }}
+            >
+              <input
+                value={placeCountry}
+                onChange={(e) => setPlaceCountry(e.target.value)}
+                placeholder="Страна"
+                autoComplete="country-name"
+              />
+              <input
+                value={placeCity}
+                onChange={(e) => setPlaceCity(e.target.value)}
+                placeholder="Город"
+                autoComplete="address-level2"
+              />
+              <button type="submit">Список вузов</button>
+            </form>
+            <div className="place-chips">
+              {LOCATION_PRESETS.slice(0, 4).map((p) => (
+                <button
+                  key={`${p.country}-${p.city}`}
+                  type="button"
+                  className="ghost"
+                  onClick={() => openPlaces(p.country, p.city, true)}
+                >
+                  {p.city}
+                </button>
+              ))}
+            </div>
             <div className="stats-row">
               <div>
                 <b>30с</b>
@@ -286,6 +335,21 @@ export default function App() {
           </button>
         </div>
       </div>
+    )
+  }
+
+  if (view === 'places') {
+    return (
+      <LocationBrowse
+        initialCountry={placeCountry}
+        initialCity={placeCity}
+        autoSearch={placeAuto}
+        onHome={home}
+        onOpen={(name) => {
+          setQuery(name)
+          void submit(name)
+        }}
+      />
     )
   }
 

@@ -141,7 +141,7 @@ export default function App() {
             <h1>Университет глазами студента. За 30 секунд.</h1>
             <p className="lede">
               Введите название вуза. Сервис найдёт открытые фотографии кампуса, общежитий, аудиторий,
-              библиотек и города, уберёт дубли и покажет, чему можно верить.
+              библиотек и города, плюс справку: грант, общежитие и условия поступления.
             </p>
             <form
               className="search"
@@ -231,6 +231,25 @@ export default function App() {
                   <small>{s.city}</small>
                   <b>{s.title}</b>
                   <p>{s.blurb}</p>
+                  <p className="fact-line">{s.fact}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="suggest">
+          <h2>Справки для абитуриента</h2>
+          <p className="home-note">
+            Грант, общежитие и условия поступления — с официальных страниц. Откройте профиль, чтобы
+            увидеть источники и фото не только кампуса: библиотеки, лаборатории, общежития, спорт.
+          </p>
+          <div className="grid-3">
+            {SUGGESTIONS.map((s) => (
+              <button key={`fact-${s.title}`} className="card-uni fact-card-home" onClick={() => void submit(s.title)}>
+                <div>
+                  <small>{s.city} · справка</small>
+                  <b>{s.title}</b>
+                  <p>{s.fact}</p>
                 </div>
               </button>
             ))}

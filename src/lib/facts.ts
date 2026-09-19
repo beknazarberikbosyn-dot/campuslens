@@ -134,7 +134,9 @@ async function wikiAdmissionNote(title: string, lang: 'en' | 'ru'): Promise<Fact
 }
 
 export async function loadUniversityFacts(university: UniversityCore): Promise<UniversityFacts> {
-  const items: FactItem[] = [...curatedFactsFor(university.displayName), ...curatedFactsFor(university.title)]
+  const items: FactItem[] = [university.displayName, university.title, ...university.searchNames].flatMap(
+    curatedFactsFor,
+  )
   const seen = new Set<string>()
   const unique = items.filter((item) => {
     if (seen.has(item.id)) return false

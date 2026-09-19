@@ -111,11 +111,12 @@ export function ProfileView({
 
       {profile.facts?.items.length ? (
         <section className="applicant-facts">
-          <div className="panel">
-            <h3>Справка для абитуриента</h3>
+          <div className="panel facts-panel">
+            <div className="chip">Справка, не буклет приёмной</div>
+            <h3>Что важно абитуриенту</h3>
             <p className="meta" style={{ marginBottom: 14 }}>
-              Грант, общежитие и пороги — ориентиры из открытых официальных страниц, не договор с вузом.
-              Перед подачей сверяйте цифру и дедлайн на сайте приёмной.
+              Грант, стоимость, общежитие и пороги — ориентиры из открытых официальных страниц, не договор
+              с вузом. Перед подачей сверяйте цифру и дедлайн на сайте приёмной.
             </p>
             <div className="facts-grid">
               {profile.facts.items.map((item) => (

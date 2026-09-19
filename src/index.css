@@ -264,6 +264,24 @@ h1 {
 .card-uni small { color: #c9a48c; letter-spacing: 0.08em; text-transform: uppercase; font-size: 11px; }
 .card-uni b { display: block; margin: 6px 0 4px; }
 .card-uni p { margin: 0; color: #b3a794; font-size: 13px; }
+.card-uni .fact-line {
+  margin-top: 8px;
+  color: #e0b199;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.fact-card-home {
+  min-height: 140px;
+}
+.facts-panel {
+  border-color: #c9a48c;
+  background: #fbf6ee;
+}
+.facts-panel .chip {
+  margin-bottom: 8px;
+  color: var(--rust);
+  opacity: 1;
+}
 
 .pipeline {
   max-width: 880px;

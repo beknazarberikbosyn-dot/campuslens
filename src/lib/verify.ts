@@ -39,13 +39,13 @@ function levelOf(score: number): ConfidenceLevel {
 }
 
 const QUOTA: Record<CategoryId, number> = {
-  campus: 8,
+  campus: 6,
   library: 5,
   dorm: 5,
-  classroom: 4,
-  lab: 4,
+  classroom: 5,
+  lab: 5,
   sport: 4,
-  life: 4,
+  life: 5,
   city: 4,
 }
 
@@ -97,6 +97,7 @@ export function verifyAndSort(
     categories: string
     hint?: CategoryId
     fromWikiPage?: boolean
+    curated?: boolean
   }[],
   universityNames: string[],
   cityName: string,
@@ -110,6 +111,7 @@ export function verifyAndSort(
   const fingerprints = new Set<string>()
 
   for (const file of files) {
+    const titleNorm = normalize(file.title)
     const blob = normalize(`${file.title} ${file.description} ${file.categories}`)
     const fp = blob.replace(/[^a-zа-я0-9]+/gi, '').slice(0, 56)
     if (fingerprints.has(fp)) {
@@ -118,7 +120,9 @@ export function verifyAndSort(
       continue
     }
 
-    if (SKIP.some((k) => blob.includes(k))) {
+    const skipOnTitle = SKIP.filter((k) => ['logo', 'seal', 'coat of arms', 'flag', 'stamp', 'postage', 'svg', 'signature', 'autograph'].includes(k))
+    const skipOnBlob = SKIP.filter((k) => ['chart', 'diagram', 'map of', 'микроструктур', 'microstructure'].includes(k))
+    if (skipOnTitle.some((k) => titleNorm.includes(k)) || skipOnBlob.some((k) => blob.includes(k))) {
       rejected.push({ title: file.title, sourceUrl: file.sourceUrl, reason: 'Не фотография кампуса (логотип, схема, марка или служебный файл)' })
       continue
     }
@@ -133,6 +137,7 @@ export function verifyAndSort(
     const hintedSector = Boolean(file.hint && file.hint !== 'city')
     const universityMatch =
       Boolean(file.fromWikiPage) ||
+      Boolean(file.curated) ||
       hintedSector ||
       phraseHit ||
       distinctiveHit ||
@@ -150,6 +155,10 @@ export function verifyAndSort(
         reason: 'Похоже на другой университет с похожим названием',
       })
       continue
+    }
+    if (file.curated) {
+      score += 28
+      reasons.push('Проверенный файл Commons этого вуза')
     }
     if (file.fromWikiPage) {
       score += 16
@@ -189,7 +198,11 @@ export function verifyAndSort(
 
     const classified = classify(blob)
     const category =
-      classified === 'campus' && file.hint && file.hint !== 'campus' ? file.hint : classified
+      file.curated && file.hint
+        ? file.hint
+        : classified === 'campus' && file.hint && file.hint !== 'campus'
+          ? file.hint
+          : classified
     if (category !== classified && file.hint) {
       const hintLabel =
         { dorm: 'общежитие', library: 'библиотека', lab: 'лаборатория', classroom: 'аудитория', sport: 'спорт', life: 'студенческая жизнь', city: 'город', campus: 'кампус' }[

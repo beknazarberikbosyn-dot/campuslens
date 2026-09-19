@@ -119,7 +119,7 @@ export const CURATED_FACTS: CuratedFacts[] = [
     ],
   },
   {
-    keys: ['massachusetts institute of technology'],
+    keys: ['massachusetts institute of technology', 'массачусетский технологический'],
     items: [
       {
         id: 'grant',
@@ -156,7 +156,7 @@ export const CURATED_FACTS: CuratedFacts[] = [
     ],
   },
   {
-    keys: ['university of oxford', 'университет оксфорда'],
+    keys: ['university of oxford', 'университет оксфорда', 'оксфордский университет'],
     items: [
       {
         id: 'grant',
@@ -193,7 +193,7 @@ export const CURATED_FACTS: CuratedFacts[] = [
     ],
   },
   {
-    keys: ['stanford university'],
+    keys: ['stanford university', 'стэнфордский университет', 'стенфордский университет'],
     items: [
       {
         id: 'grant',

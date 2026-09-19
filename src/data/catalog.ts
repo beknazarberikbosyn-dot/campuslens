@@ -172,6 +172,7 @@ export const SUGGESTIONS = [
     title: 'Nazarbayev University',
     city: 'Астана',
     blurb: 'Автономный кампус на левом берегу',
+    fact: 'Грант NUET · общежитие ~$55/мес · IELTS 6.0 или ЕНТ 85',
     image:
       'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Nazarbayev_University_2.jpg/1280px-Nazarbayev_University_2.jpg',
   },
@@ -179,12 +180,14 @@ export const SUGGESTIONS = [
     title: 'Al-Farabi Kazakh National University',
     city: 'Алматы',
     blurb: 'Главный корпус и парк КазНУ',
+    fact: 'Госгрант МНВО · ЕНТ от 65 · общежитие для иногородних',
     image: 'https://upload.wikimedia.org/wikipedia/commons/7/72/Al-Farabi_KazNU_rektorat.jpg',
   },
   {
     title: 'Satbayev University',
     city: 'Алматы',
     blurb: 'Старейший технический вуз страны',
+    fact: 'Госгрант · ЕНТ ориентир от 80 · заявка в общежитие онлайн',
     image:
       'https://upload.wikimedia.org/wikipedia/commons/thumb/6/61/Satbayev_University_2.jpg/1280px-Satbayev_University_2.jpg',
   },
@@ -192,6 +195,7 @@ export const SUGGESTIONS = [
     title: 'Massachusetts Institute of Technology',
     city: 'Cambridge',
     blurb: 'Great Dome и East Campus',
+    fact: 'Need-based aid MIT · tuition $60k+ до помощи · 1 курс в резиденции',
     image:
       'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/MIT_Dome_night1_Edit.jpg/1280px-MIT_Dome_night1_Edit.jpg',
   },
@@ -199,6 +203,7 @@ export const SUGGESTIONS = [
     title: 'University of Oxford',
     city: 'Oxford',
     blurb: 'Radcliffe Camera и колледжи',
+    fact: 'UCAS + тест курса · Overseas несколько десятков £k · комната в колледже',
     image:
       'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Radcliffe_Camera_Oxford_2018_03.jpg/1280px-Radcliffe_Camera_Oxford_2018_03.jpg',
   },
@@ -206,6 +211,7 @@ export const SUGGESTIONS = [
     title: 'Stanford University',
     city: 'Stanford',
     blurb: 'Main Quad и пальмы',
+    fact: 'Need-based aid · tuition $60k+ до помощи · 1 курс в campus housing',
     image:
       'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Stanford_University_campus_in_2016.jpg/1280px-Stanford_University_campus_in_2016.jpg',
   },

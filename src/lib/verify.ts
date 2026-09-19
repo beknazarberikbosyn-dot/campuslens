@@ -38,6 +38,53 @@ function levelOf(score: number): ConfidenceLevel {
   return 'uncertain'
 }
 
+const QUOTA: Record<CategoryId, number> = {
+  campus: 8,
+  library: 5,
+  dorm: 5,
+  classroom: 4,
+  lab: 4,
+  sport: 4,
+  life: 4,
+  city: 4,
+}
+
+function balancePhotos(photos: Photo[], max = 36): Photo[] {
+  const byCat = new Map<CategoryId, Photo[]>()
+  for (const photo of photos) {
+    const list = byCat.get(photo.category) ?? []
+    list.push(photo)
+    byCat.set(photo.category, list)
+  }
+  const picked: Photo[] = []
+  const used = new Set<string>()
+  for (const [cat, n] of Object.entries(QUOTA) as [CategoryId, number][]) {
+    for (const photo of (byCat.get(cat) ?? []).slice(0, n)) {
+      picked.push(photo)
+      used.add(photo.id)
+    }
+  }
+  const extra: Record<CategoryId, number> = {
+    campus: 2,
+    library: 1,
+    dorm: 1,
+    classroom: 1,
+    lab: 1,
+    sport: 1,
+    life: 1,
+    city: 1,
+  }
+  for (const photo of photos) {
+    if (picked.length >= max) break
+    if (used.has(photo.id)) continue
+    const have = picked.filter((row) => row.category === photo.category).length
+    if (have >= QUOTA[photo.category] + extra[photo.category]) continue
+    picked.push(photo)
+    used.add(photo.id)
+  }
+  return picked
+}
+
 export function verifyAndSort(
   files: {
     title: string
@@ -48,6 +95,8 @@ export function verifyAndSort(
     date: string | null
     description: string
     categories: string
+    hint?: CategoryId
+    fromWikiPage?: boolean
   }[],
   universityNames: string[],
   cityName: string,
@@ -81,8 +130,20 @@ export function verifyAndSort(
     const cityish = new Set(['oxford', 'cambridge', 'stanford', 'almaty', 'astana', 'boston', 'london'])
     const distinctive = uniTokens.filter((t) => t.length > 5 && !cityish.has(t))
     const distinctiveHit = distinctive.length > 0 && distinctive.some((t) => blob.includes(t))
-    const universityMatch = phraseHit || distinctiveHit || (distinctive.length === 0 && nameHit >= 2)
-    if (/\bbrookes\b|rice university|naresuan|northeastern/i.test(blob) && !distinctiveHit && !phraseHit) {
+    const hintedSector = Boolean(file.hint && file.hint !== 'city')
+    const universityMatch =
+      Boolean(file.fromWikiPage) ||
+      hintedSector ||
+      phraseHit ||
+      distinctiveHit ||
+      (distinctive.length === 0 && nameHit >= 2)
+    if (
+      /\bbrookes\b|rice university|naresuan|northeastern/i.test(blob) &&
+      !distinctiveHit &&
+      !phraseHit &&
+      !file.fromWikiPage &&
+      !hintedSector
+    ) {
       rejected.push({
         title: file.title,
         sourceUrl: file.sourceUrl,
@@ -90,9 +151,16 @@ export function verifyAndSort(
       })
       continue
     }
-    if (universityMatch) {
+    if (file.fromWikiPage) {
+      score += 16
+      reasons.push('Файл с карточки Wikipedia этого вуза')
+    }
+    if (phraseHit || distinctiveHit || (distinctive.length === 0 && nameHit >= 2)) {
       score += 42
       reasons.push('Название вуза есть в файле или категориях Wikimedia')
+    } else if (hintedSector) {
+      score += 28
+      reasons.push('Файл пришёл из поиска по сектору этого вуза')
     }
     if (file.categories.toLowerCase().includes('university') || file.categories.includes('университет')) {
       score += 12
@@ -119,7 +187,16 @@ export function verifyAndSort(
       reasons.push(`Лицензия ${file.license}`)
     }
 
-    const category = classify(blob)
+    const classified = classify(blob)
+    const category =
+      classified === 'campus' && file.hint && file.hint !== 'campus' ? file.hint : classified
+    if (category !== classified && file.hint) {
+      const hintLabel =
+        { dorm: 'общежитие', library: 'библиотека', lab: 'лаборатория', classroom: 'аудитория', sport: 'спорт', life: 'студенческая жизнь', city: 'город', campus: 'кампус' }[
+          file.hint
+        ]
+      reasons.push(`Искали сектор «${hintLabel}», ключей кампуса в файле нет`)
+    }
     if (category === 'city' && !universityMatch) {
       if (cityNorm && blob.includes(cityNorm)) {
         score = Math.max(score, 62)
@@ -166,14 +243,10 @@ export function verifyAndSort(
     })
   }
 
-  const order: CategoryId[] = ['campus', 'library', 'classroom', 'dorm', 'city', 'lab', 'sport', 'life']
-  kept.sort((a, b) => {
-    const cat = order.indexOf(a.category) - order.indexOf(b.category)
-    return cat !== 0 ? cat : b.confidence - a.confidence
-  })
-  const capped = kept.slice(0, 24)
-  if (kept.length > 24) {
-    duplicatesRemoved += kept.length - 24
+  kept.sort((a, b) => b.confidence - a.confidence)
+  const capped = balancePhotos(kept, 36)
+  if (kept.length > capped.length) {
+    duplicatesRemoved += kept.length - capped.length
   }
   return { photos: capped, rejected: rejected.slice(0, 18), duplicatesRemoved }
 }

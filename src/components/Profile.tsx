@@ -1,7 +1,7 @@
 import { FILTERS } from '../data/catalog'
 import { MapSources } from './MapSources'
 import { ProfileReviews } from './Reviews'
-import type { Photo, VisualProfile } from '../types'
+import type { FactItem, Photo, VisualProfile } from '../types'
 
 const LEVEL: Record<Photo['level'], string> = {
   verified: 'подтверждено',
@@ -109,6 +109,23 @@ export function ProfileView({
         </div>
       </section>
 
+      {profile.facts?.items.length ? (
+        <section className="applicant-facts">
+          <div className="panel">
+            <h3>Справка для абитуриента</h3>
+            <p className="meta" style={{ marginBottom: 14 }}>
+              Грант, общежитие и пороги — ориентиры из открытых официальных страниц, не договор с вузом.
+              Перед подачей сверяйте цифру и дедлайн на сайте приёмной.
+            </p>
+            <div className="facts-grid">
+              {profile.facts.items.map((item) => (
+                <FactCard key={item.id} item={item} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {profile.warnings.length ? (
         <div className="warns">
           <b>Честная неопределённость</b>
@@ -215,6 +232,23 @@ export function ProfileView({
           </ul>
         </details>
       ) : null}
+    </div>
+  )
+}
+
+function FactCard({ item }: { item: FactItem }) {
+  return (
+    <div className="fact-card">
+      <span>{item.label}</span>
+      <b>{item.value}</b>
+      {item.note ? <p>{item.note}</p> : null}
+      {item.sourceUrl ? (
+        <a href={item.sourceUrl} target="_blank" rel="noreferrer">
+          {item.source}
+        </a>
+      ) : (
+        <small>{item.source}</small>
+      )}
     </div>
   )
 }

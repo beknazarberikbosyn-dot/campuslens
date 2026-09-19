@@ -1,4 +1,4 @@
-import { ALIASES, normalize } from '../data/catalog'
+import { ALIASES, normalize, searchNamesFor } from '../data/catalog'
 import type { UniversityCore, WikiHit } from '../types'
 
 const UNI_RE =
@@ -105,7 +105,7 @@ export async function loadUniversity(title: string, lang: 'en' | 'ru' = 'en'): P
     return {
       title: page.title,
       displayName: page.title,
-      searchNames: [...new Set([title, page.title].filter(Boolean))],
+      searchNames: searchNamesFor(title, page.title),
       extract,
       lang: l,
       pageUrl: page.fullurl ?? `https://${l}.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,

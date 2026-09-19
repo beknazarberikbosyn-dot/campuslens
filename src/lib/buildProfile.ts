@@ -1,5 +1,6 @@
 import { matchCity } from '../data/catalog'
 import { collectCampusImages } from './commons'
+import { loadUniversityFacts } from './facts'
 import { resolveCampusPlace } from './maps'
 import { haversineKm, verifyAndSort } from './verify'
 import { loadUniversity, resolveCandidates } from './wiki'
@@ -9,6 +10,7 @@ const STEPS: Omit<PipelineStep, 'done' | 'detail'>[] = [
   { id: 'resolve', label: 'Ищем университет' },
   { id: 'collect', label: 'Собираем открытые источники' },
   { id: 'maps', label: 'Открываем карточки на картах' },
+  { id: 'facts', label: 'Собираем справку для абитуриента' },
   { id: 'dedupe', label: 'Удаляем дубликаты и мусор' },
   { id: 'verify', label: 'Проверяем принадлежность' },
   { id: 'sort', label: 'Раскладываем по категориям' },
@@ -41,17 +43,23 @@ export async function buildVisualProfile(
   steps = mark(steps, 'resolve', university.displayName)
   push({ steps, message: university.displayName })
 
-  const city = matchCity(`${university.displayName} ${university.extract.split(/[.!?]/)[0] ?? ''}`)
+  const city = matchCity(`${university.displayName} ${university.extract.slice(0, 360)}`)
   const cityName = city?.name ?? university.cityHint
-  push({ steps, message: 'Ищем фотографии на Wikimedia Commons' })
-  const files = await collectCampusImages(university.searchNames, cityName)
-  steps = mark(steps, 'collect', `${files.length} файлов из Commons`)
-  push({ steps, found: files.length, message: `Найдено ${files.length} изображений` })
-
-  push({ steps, message: 'Ищем кампус в OpenStreetMap и собираем ссылки на карты' })
-  const campusPlace = await resolveCampusPlace(university.displayName, university.lat, university.lon)
+  push({ steps, message: 'Ищем фото по кампусу, общежитию, библиотеке и другим секторам' })
+  const [files, campusPlace, facts] = await Promise.all([
+    collectCampusImages(university.searchNames, cityName, {
+      title: university.title,
+      lang: university.lang,
+      lat: university.lat,
+      lon: university.lon,
+    }),
+    resolveCampusPlace(university.displayName, university.lat, university.lon),
+    loadUniversityFacts(university),
+  ])
+  steps = mark(steps, 'collect', `${files.length} файлов из Commons и Wikipedia`)
   steps = mark(steps, 'maps', campusPlace.address || campusPlace.provider)
-  push({ steps, found: files.length, message: `Карточки: 2ГИС, Google, Яндекс, OSM` })
+  steps = mark(steps, 'facts', facts.items.length ? `${facts.items.length} справок` : 'цифр мало')
+  push({ steps, found: files.length, message: `Найдено ${files.length} изображений` })
 
   const { photos, rejected, duplicatesRemoved } = verifyAndSort(files, university.searchNames, cityName)
   steps = mark(steps, 'dedupe', `снято ${duplicatesRemoved} похожих`)
@@ -63,8 +71,20 @@ export async function buildVisualProfile(
   const verified = photos.filter((p) => p.level === 'verified').length
   const warnings: string[] = []
   if (photos.length < 6) warnings.push('Мало проверенных фотографий. Лучше показать пробел, чем выдать чужой кампус.')
-  if (photos.filter((p) => p.category === 'dorm').length === 0) {
-    warnings.push('Общежития: в открытых источниках нет фотографий, которые можно уверенно привязать к этому вузу.')
+  const missingSectors = (
+    [
+      ['dorm', 'общежитий'],
+      ['library', 'библиотеки'],
+      ['lab', 'лабораторий'],
+      ['classroom', 'аудиторий'],
+      ['sport', 'спорта'],
+      ['life', 'студенческой жизни'],
+    ] as const
+  ).filter(([id]) => photos.filter((p) => p.category === id).length === 0)
+  if (missingSectors.length) {
+    warnings.push(
+      `Мало кадров вне кампуса: нет уверенных фото ${missingSectors.map(([, label]) => label).join(', ')}.`,
+    )
   }
   if (verified < 3) warnings.push('Низкая общая достоверность: много кадров без явного названия университета.')
 
@@ -91,7 +111,8 @@ export async function buildVisualProfile(
     city,
     distanceKm,
     warnings,
-    sourcesUsed: ['Wikipedia', 'Wikimedia Commons', 'OpenStreetMap'],
+    sourcesUsed: [...new Set(['Wikipedia', 'Wikimedia Commons', 'OpenStreetMap', ...facts.sourcesUsed])],
     campusPlace,
+    facts,
   }
 }

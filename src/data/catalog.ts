@@ -4,37 +4,84 @@ export const CATEGORIES: { id: CategoryId; label: string; keys: string[] }[] = [
   {
     id: 'dorm',
     label: 'Общежитие',
-    keys: ['dorm', 'residence hall', 'hostel', 'общежит', 'housing', 'east campus', 'dormitory'],
+    keys: [
+      'dorm',
+      'residence hall',
+      'hall of residence',
+      'hostel',
+      'общежит',
+      'housing',
+      'east campus',
+      'dormitory',
+      'dorms',
+      'student housing',
+    ],
   },
   {
     id: 'sport',
     label: 'Спорт',
-    keys: ['sport', 'stadium', 'gym', 'athletic', 'спорт', 'arena', 'field house'],
+    keys: [
+      'sport',
+      'stadium',
+      'gym',
+      'athletic',
+      'спорт',
+      'arena',
+      'field house',
+      'swimming',
+      'бассейн',
+      'футбол',
+      'tennis',
+      'спорткомплекс',
+    ],
   },
   {
     id: 'lab',
     label: 'Лаборатории',
-    keys: ['lab', 'лаборат', 'laboratory', 'research', 'in vitro', 'science and technology'],
+    keys: ['lab', 'лаборат', 'laboratory', 'in vitro', 'cleanroom', 'workshop', 'мастерск', 'fab lab'],
   },
   {
     id: 'life',
     label: 'Студенческая жизнь',
-    keys: ['student', 'студент', 'club', 'graduation', 'commencement', 'campus life', 'event'],
+    keys: [
+      'graduation',
+      'commencement',
+      'campus life',
+      'cafeteria',
+      'canteen',
+      'dining',
+      'столов',
+      'клуб',
+      'concert',
+      'festival',
+      'orientation',
+    ],
   },
   {
     id: 'library',
     label: 'Библиотека',
-    keys: ['library', 'библиот', 'bodleian', 'radcliffe camera', 'reading room'],
+    keys: ['library', 'библиот', 'bodleian', 'radcliffe camera', 'reading room', 'книгохран'],
   },
   {
     id: 'classroom',
     label: 'Аудитории',
-    keys: ['classroom', 'lecture', 'аудитор', 'auditorium', 'lecture hall', 'class'],
+    keys: ['classroom', 'lecture', 'аудитор', 'auditorium', 'lecture hall', 'lecture theatre', 'seminar room', 'амфитеатр'],
   },
   {
     id: 'city',
     label: 'Город',
-    keys: ['skyline', 'cityscape', 'downtown', 'baiterek', 'bayterek', 'kok-tobe', 'kök töbe'],
+    keys: [
+      'skyline',
+      'cityscape',
+      'downtown',
+      'baiterek',
+      'bayterek',
+      'kok-tobe',
+      'kök töbe',
+      'проспект',
+      'city street',
+      'riverfront',
+    ],
   },
   {
     id: 'campus',
@@ -163,6 +210,31 @@ export const SUGGESTIONS = [
       'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Stanford_University_campus_in_2016.jpg/1280px-Stanford_University_campus_in_2016.jpg',
   },
 ]
+
+export const SEARCH_VARIANTS: Record<string, string[]> = {
+  'nazarbayev university': ['Nazarbayev University', 'Назарбаев Университет', 'NU Astana'],
+  'al-farabi kazakh national university': [
+    'Al-Farabi Kazakh National University',
+    'КазНУ',
+    'KazNU',
+    'аль-Фараби',
+  ],
+  'satbayev university': ['Satbayev University', 'Сатпаев университет', 'КазНИТУ'],
+  'massachusetts institute of technology': ['Massachusetts Institute of Technology', 'MIT campus', 'MIT campus Cambridge'],
+  'university of oxford': ['University of Oxford', 'Oxford college', 'Оксфорд'],
+  'stanford university': ['Stanford University', 'Stanford campus'],
+}
+
+export function searchNamesFor(...names: string[]) {
+  const out = new Set<string>()
+  for (const name of names) {
+    const trimmed = name.trim()
+    if (!trimmed) continue
+    out.add(trimmed)
+    for (const extra of SEARCH_VARIANTS[normalize(trimmed)] ?? []) out.add(extra)
+  }
+  return [...out]
+}
 
 export function normalize(s: string) {
   return s

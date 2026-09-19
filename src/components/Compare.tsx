@@ -40,6 +40,11 @@ function Side({ profile }: { profile: VisualProfile }) {
         </div>
       </div>
       <AspectMeters summary={summary} />
+      {profile.facts?.items.slice(0, 3).map((item) => (
+        <p key={item.id} className="meta" style={{ marginTop: 8 }}>
+          <b>{item.label}.</b> {item.value}
+        </p>
+      ))}
       <p style={{ marginTop: 14 }}>{profile.description.slice(0, 220)}…</p>
       <div className="grid-3" style={{ marginTop: 12 }}>
         {profile.photos.slice(0, 3).map((ph) => (

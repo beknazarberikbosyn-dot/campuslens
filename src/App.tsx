@@ -63,6 +63,7 @@ export default function App() {
         { id: 'resolve', label: 'Ищем университет', done: false, detail: '' },
         { id: 'collect', label: 'Собираем открытые источники', done: false, detail: '' },
         { id: 'maps', label: 'Открываем карточки на картах', done: false, detail: '' },
+        { id: 'facts', label: 'Собираем справку для абитуриента', done: false, detail: '' },
         { id: 'dedupe', label: 'Удаляем дубликаты и мусор', done: false, detail: '' },
         { id: 'verify', label: 'Проверяем принадлежность', done: false, detail: '' },
         { id: 'sort', label: 'Раскладываем по категориям', done: false, detail: '' },

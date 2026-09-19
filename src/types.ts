@@ -67,6 +67,22 @@ export type PipelineStep = {
   detail: string
 }
 
+export type FactItem = {
+  id: string
+  label: string
+  value: string
+  note?: string
+  source: string
+  sourceUrl?: string
+}
+
+export type UniversityFacts = {
+  items: FactItem[]
+  country: string | null
+  website: string | null
+  sourcesUsed: string[]
+}
+
 export type VisualProfile = {
   query: string
   university: UniversityCore
@@ -80,6 +96,7 @@ export type VisualProfile = {
   warnings: string[]
   sourcesUsed: string[]
   campusPlace?: CampusPlace | null
+  facts?: UniversityFacts | null
 }
 
 export type Progress = {

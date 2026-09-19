@@ -37,9 +37,10 @@ img { max-width: 100%; display: block; }
 .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   padding: 18px 28px;
-  gap: 16px;
+  gap: 12px 16px;
+  flex-wrap: wrap;
 }
 .brand {
   display: flex;
@@ -213,10 +214,11 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
+  margin-left: auto;
 }
 .lang-switch {
   display: inline-flex;
-  border: 1px solid color-mix(in srgb, currentColor 38%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 55%, transparent);
   border-radius: 999px;
   overflow: hidden;
   flex-shrink: 0;
@@ -225,12 +227,12 @@ h1 {
   background: transparent;
   color: inherit;
   border: 0;
-  padding: 8px 11px;
+  padding: 9px 13px;
   font-weight: 800;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   cursor: pointer;
-  opacity: 0.58;
+  opacity: 0.7;
 }
 .lang-switch button.on {
   opacity: 1;

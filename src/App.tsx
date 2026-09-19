@@ -31,10 +31,8 @@ function Topbar({
         <Logo />
         CampusLens
       </button>
-      <div className="topbar-end">
-        {extra}
-        <LanguageSwitcher />
-      </div>
+      <LanguageSwitcher />
+      {extra ? <div className="topbar-end">{extra}</div> : null}
     </div>
   )
 }

@@ -114,11 +114,11 @@ export function CompareView({
           <span className="mark" />
           CampusLens
         </button>
+        <LanguageSwitcher />
         <div className="topbar-end">
           <button className="ghost" onClick={onBack}>
             {t('nav.backProfile')}
           </button>
-          <LanguageSwitcher />
         </div>
       </div>
       <div style={{ padding: '12px 28px 0' }}>

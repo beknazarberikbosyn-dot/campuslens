@@ -329,12 +329,12 @@ export function RatingsView({
           <span className="mark" />
           CampusLens
         </button>
+        <LanguageSwitcher />
         <div className="topbar-end">
           <span className="chip">{t('chip.reviews')}</span>
           <button className="ghost" onClick={onHome}>
             {t('nav.home')}
           </button>
-          <LanguageSwitcher />
         </div>
       </div>
 

@@ -82,11 +82,11 @@ export function LocationBrowse({
           <span className="mark" />
           CampusLens
         </button>
+        <LanguageSwitcher />
         <div className="topbar-end">
           <button className="ghost" onClick={onHome}>
             {t('nav.home')}
           </button>
-          <LanguageSwitcher />
         </div>
       </div>
       <div className="places">

@@ -47,6 +47,7 @@ export function ProfileView({
           <span className="mark" />
           CampusLens
         </button>
+        <LanguageSwitcher />
         <div className="topbar-end">
           <button className="ghost" onClick={onRatings}>
             {t('nav.ratings')}
@@ -57,7 +58,6 @@ export function ProfileView({
           <button className="ghost" onClick={onHome}>
             {t('nav.newSearch')}
           </button>
-          <LanguageSwitcher />
         </div>
       </div>
 

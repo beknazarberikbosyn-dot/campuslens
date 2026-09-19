@@ -8,7 +8,7 @@
 
 **Демо:** [https://beknazarberikbosyn-dot.github.io/campuslens/](https://beknazarberikbosyn-dot.github.io/campuslens/)
 
-Если страница выглядит как старая версия (по 3 отзыва на вуз), откройте [ссылку с обходом кэша](https://beknazarberikbosyn-dot.github.io/campuslens/?v=16) или обновите вкладку через Cmd+Shift+R / Ctrl+Shift+R.
+Если страница выглядит как старая версия, откройте [ссылку с обходом кэша](https://beknazarberikbosyn-dot.github.io/campuslens/?v=18) или обновите вкладку через Cmd+Shift+R / Ctrl+Shift+R.
 
 ---
 
